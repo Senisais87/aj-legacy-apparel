@@ -2,7 +2,9 @@
    the original reference remains available. These are visual, not production, files. */
 (function(){
  'use strict';
- const template=new Image();template.src='assets/mockups/blank-garments.png';
+ const template=new Image();template.src='assets/models/customizer-models.png';
+ const hats=new Image();hats.src='assets/models/headwear-models.png';
+ const joggers=new Image();joggers.src='assets/models/jogger-models.png';
  const scripture=new Image();scripture.src='assets/artwork/matthew-5-9.png';
  const logoSource=new Image();logoSource.src='assets/concepts/gym-renew.webp';
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -30,11 +32,11 @@
  function place(ctx,art,cx,top,maxW,maxH){const s=Math.min(maxW/art.width,maxH/art.height);ctx.drawImage(art,cx-art.width*s/2,top,art.width*s,art.height*s)}
  function garment(ctx,hoodie,back,color){
   const cw=template.naturalWidth/2,ch=template.naturalHeight/2;
-  const c=document.createElement('canvas');c.width=768;c.height=512;
-  const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(template,back*cw,hoodie*ch,cw,ch,0,0,768,512);
+  const c=document.createElement('canvas');c.width=768;c.height=768;
+  const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(template,back*cw,hoodie*ch,cw,ch,0,0,768,768);
   if(color!=='#15171b'&&color!=='#141414'&&color!=='#121212'&&color!=='#000000'){
-   const rgb=[1,3,5].map(n=>parseInt(color.slice(n,n+2),16)),p=x.getImageData(0,0,768,512),d=p.data;
-   for(let i=0;i<d.length;i+=4){const hi=Math.max(d[i],d[i+1],d[i+2]);if(hi>110)continue;const light=(d[i]+d[i+1]+d[i+2])/3,shade=.46+light/88;for(let k=0;k<3;k++)d[i+k]=clamp(rgb[k]*shade,0,255)}
+   const rgb=[1,3,5].map(n=>parseInt(color.slice(n,n+2),16)),p=x.getImageData(0,0,768,768),d=p.data;
+   for(let i=0;i<d.length;i+=4){const hi=Math.max(d[i],d[i+1],d[i+2]);const px=(i/4)%768,py=Math.floor(i/4/768);if(hi>110||py<220||py>650||px<180||px>590||(!hoodie&&py>395&&(px<250||px>525)))continue;const light=(d[i]+d[i+1]+d[i+2])/3,shade=.46+light/88;for(let k=0;k<3;k++)d[i+k]=clamp(rgb[k]*shade,0,255)}
    x.putImageData(p,0,0);
   }
   ctx.drawImage(c,back*768,0);
@@ -43,14 +45,47 @@
   create(canvas,onReady){
    let disposed=false;
    const ready=()=>{if(!disposed)onReady()};
-   template.addEventListener('load',ready);scripture.addEventListener('load',ready);logoSource.addEventListener('load',ready);
+   hats.addEventListener('load',ready);joggers.addEventListener('load',ready);template.addEventListener('load',ready);scripture.addEventListener('load',ready);logoSource.addEventListener('load',ready);
    return {
-    dispose(){disposed=true;template.removeEventListener('load',ready);scripture.removeEventListener('load',ready);logoSource.removeEventListener('load',ready)},
+    dispose(){disposed=true;hats.removeEventListener('load',ready);joggers.removeEventListener('load',ready);template.removeEventListener('load',ready);scripture.removeEventListener('load',ready);logoSource.removeEventListener('load',ready)},
     draw(v){
+     if(v.special){
+      const base=v.special==='joggers'?joggers:hats;if(!base.complete||!base.naturalWidth)return false;
+      canvas.width=1536;canvas.height=830;const ctx=canvas.getContext('2d');ctx.fillStyle='#e9e6e1';ctx.fillRect(0,0,1536,830);
+      const row=v.special==='joggers'?0:/beanie/i.test(v.title)?2:/boonie/i.test(v.title)?3:/dad/i.test(v.title)?1:0;
+      const cw=base.naturalWidth/2,ch=v.special==='joggers'?base.naturalHeight:base.naturalHeight/4;
+      for(let back=0;back<2;back++){
+       const c=document.createElement('canvas');c.width=c.height=768;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(base,back*cw,row*ch,cw,ch,0,0,768,768);
+       if(v.color&&!['#15171b','#141414','#121212','#000000'].includes(v.color)){
+        const p=x.getImageData(0,0,768,768),d=p.data,rgb=[1,3,5].map(n=>parseInt(v.color.slice(n,n+2),16));
+        for(let i=0;i<d.length;i+=4){const px=(i/4)%768,py=Math.floor(i/4/768),hi=Math.max(d[i],d[i+1],d[i+2]),lo=Math.min(d[i],d[i+1],d[i+2]);
+         if(hi>90||hi-lo>22||(v.special==='joggers'?(py<325||py>690||px<290||px>475):(py<25||py>230||px<165||px>595)))continue;
+         for(let k=0;k<3;k++)d[i+k]=Math.min(255,rgb[k]*(.45+hi/110));}x.putImageData(p,0,0);
+       }ctx.drawImage(c,back*768,0);
+      }
+      if(v.source){
+       if(v.special==='joggers')place(ctx,tile(v.source,[.60,.24,.14,.14]),428,365,38,45);
+       else{
+        let box=v.artKey.startsWith('hatdept')?[.18,.18,.30,.42]:/beanie/i.test(v.title)?[.35,.49,.31,.31]:[.44,.27,.27,.43];
+        let front=tile(v.source,box),back=logoSource.complete&&logoSource.naturalWidth?tile(logoSource,[.322,.23,.08,.13]):front;
+        if(v.artKey.startsWith('hatdept')&&v.artKey!=='hatdept5'){
+         front=document.createElement('canvas');front.width=240;front.height=145;const t=front.getContext('2d'),labels=[['LAW','ENFORCEMENT'],['DOC','CORRECTIONS'],['TRT'],['JUVENILE','DETENTION'],['REHABILITATION','REENTRY']][Number(v.artKey.slice(-1))]||['AJ','LEGACY'];t.textAlign='center';t.fillStyle='#fff';t.font='bold 35px system-ui';labels.forEach((label,i)=>t.fillText(label,120,45+i*42,228));if(v.flag!=='None — monochrome'){t.fillStyle=({'Blue':'#2870ed','Orange':'#f47721','Red':'#d22832','Green':'#289650','Purple':'#9141be'}[v.flag]||'#b5b8bd');t.fillRect(8,labels.length===1?68:105,224,7);}
+        }else front=back;
+        if(v.layout?.startsWith('AJ Legacy')){front=back;back=null;}
+        if(v.flag){const x=front.getContext('2d'),p=x.getImageData(0,0,front.width,front.height),d=p.data,rgb=({'Blue':[40,112,237],'Orange':[244,119,33],'Red':[210,40,50],'Green':[40,150,80],'Purple':[145,65,190]}[v.flag]||[181,184,189]);for(let i=0;i<d.length;i+=4){const hi=Math.max(d[i],d[i+1],d[i+2]),lo=Math.min(d[i],d[i+1],d[i+2]);if(hi-lo>24)for(let k=0;k<3;k++)d[i+k]=rgb[k]*hi/255}x.putImageData(p,0,0);}
+        place(ctx,front,384,row===2?250:row===3?93:75,130,row===2?108:105);
+        if(back)place(ctx,back,1152,row===2?260:row===3?93:88,65,65);
+        else{ctx.save();ctx.translate(1110,95);ctx.fillStyle='#e8e8e8';ctx.fillRect(0,0,84,48);ctx.fillStyle='#181818';for(let y=0;y<48;y+=8)ctx.fillRect(0,y,84,4);ctx.fillStyle=({'Blue':'#2870ed','Orange':'#f47721','Red':'#d22832','Green':'#289650','Purple':'#9141be'}[v.flag]||'#b5b8bd');ctx.fillRect(0,24,84,4);ctx.fillStyle='#181818';ctx.fillRect(0,0,35,24);ctx.restore();}
+        if(v.text){ctx.fillStyle=v.ink||'#fff';ctx.textAlign='center';ctx.font='bold 17px system-ui';ctx.fillText(v.text,255,row===2?285:155,110);}
+       }
+      }
+      ctx.fillStyle='#e9e6e1';ctx.fillRect(0,768,1536,62);ctx.fillStyle='#242424';ctx.textAlign='center';ctx.font='600 20px system-ui';ctx.fillText('FRONT',384,806);ctx.fillText('BACK',1152,806);canvas.dataset.previewEngine='ai-model-photo';return true;
+     }
      if(!template.complete||!template.naturalWidth)return false;
-     canvas.width=1536;canvas.height=574;const ctx=canvas.getContext('2d');
-     ctx.fillStyle='#e9e6e1';ctx.fillRect(0,0,1536,574);
+     canvas.width=1536;canvas.height=830;const ctx=canvas.getContext('2d');
+     ctx.fillStyle='#e9e6e1';ctx.fillRect(0,0,1536,830);
      garment(ctx,v.hoodie,0,v.color);garment(ctx,v.hoodie,1,v.color);
+     ctx.save();ctx.translate(0,v.hoodie?185:150);
      const mainOnFront=v.side==='Front',offset=mainOnFront?0:768;
      const y=mainOnFront&&v.text?188:v.hoodie?(mainOnFront?153:164):123;
      const maxH=v.hoodie?(mainOnFront?245:265):310;
@@ -60,7 +95,7 @@
       const box=v.mainBox||profiles[v.artKey]||(v.paired?[.635,v.originalHoodie?.24:.085,.33,v.originalHoodie?.63:.76]:[.23,.16,.57,.73]);
       const rebuilt=/^shirt2_[02]$/.test(v.artKey);
       const clean=rebuilt&&scripture.complete&&scripture.naturalWidth?tile(scripture,[.17,.05,.67,.92]):tile(v.source,box);
-      if(rebuilt){const c=clean.getContext('2d'),p=c.getImageData(0,0,clean.width,clean.height),d=p.data;for(let i=0;i<d.length;i+=4){if(Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])>24){const gray=Math.max(d[i],d[i+1],d[i+2]);d[i]=d[i+1]=d[i+2]=gray}}c.putImageData(p,0,0)}
+      if(rebuilt){const c=clean.getContext('2d'),p=c.getImageData(0,0,clean.width,clean.height),d=p.data;for(let i=0;i<d.length;i+=4){if(Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])>24){const rgb={'Blue':[40,112,237],'Orange':[244,119,33],'Red':[210,40,50],'Green':[40,150,80],'Purple':[145,65,190],'Silver / gray':[181,184,189],'None — monochrome':[215,217,220]}[v.flag]||[181,184,189];const light=Math.max(d[i],d[i+1],d[i+2])/255;for(let k=0;k<3;k++)d[i+k]=Math.round(rgb[k]*light)}}c.putImageData(p,0,0)}
       if(!v.blankBack)place(ctx,clean,384+offset,y,v.hoodie?223:250,maxH);
       if(v.event){
        ctx.fillStyle='#454545';ctx.textAlign='center';ctx.font='600 20px system-ui';ctx.fillText('Sponsor artwork pending',1152,280);
@@ -75,8 +110,8 @@
        if(v.text){ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=v.ink;let fs=20;ctx.font='700 '+fs+'px system-ui';while(ctx.measureText(v.text).width>130&&fs>8){fs--;ctx.font='700 '+fs+'px system-ui'}ctx.fillText(v.text,318,v.hoodie?175:153);ctx.restore()}
       }
      }
-     ctx.fillStyle='#e9e6e1';ctx.fillRect(0,512,1536,62);ctx.fillStyle='#242424';ctx.textAlign='center';ctx.font='600 20px system-ui';ctx.fillText('FRONT',384,550);ctx.fillText('BACK',1152,550);
-     canvas.dataset.previewEngine='full-color-photo';canvas.dataset.garment=v.hoodie?'Hoodie':'Shirt';canvas.dataset.designSide=v.side;return true;
+     ctx.restore();ctx.fillStyle='#e9e6e1';ctx.fillRect(0,768,1536,62);ctx.fillStyle='#242424';ctx.textAlign='center';ctx.font='600 20px system-ui';ctx.fillText('FRONT',384,806);ctx.fillText('BACK',1152,806);
+     canvas.dataset.previewEngine='ai-model-photo';canvas.dataset.garment=v.hoodie?'Hoodie':'Shirt';canvas.dataset.designSide=v.side;return true;
     }
    };
   }
