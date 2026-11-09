@@ -1,0 +1,35 @@
+name: Link AJ Legacy catalog to home
+on:
+  push:
+    paths:
+      - '.github/workflows/link-catalog.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  link:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Add merchandise link without replacing memorial site
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          if 'href="catalog.html"' not in s and "href='catalog.html'" not in s:
+              link='<a href="catalog.html" style="position:fixed;bottom:18px;right:18px;z-index:9999;background:#e7e9ee;color:#11151b;padding:14px 20px;border-radius:9px;font:700 14px Arial,sans-serif;text-decoration:none;box-shadow:0 5px 20px #0008">Shop Collections · Preview</a>'
+              s=s.replace('</body>',link+'</body>',1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit navigation link
+        run: |
+          if ! git diff --quiet -- index.html; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add index.html
+            git commit -m "Link expanded AJ Legacy catalog from homepage"
+            git push
+          fi
