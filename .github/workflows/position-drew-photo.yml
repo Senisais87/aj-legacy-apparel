@@ -1,0 +1,39 @@
+name: Place Drew photo inside In Memory tribute
+on:
+  push:
+    paths:
+      - '.github/workflows/position-drew-photo.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  position:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Place photograph immediately above In Memory heading
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          # Remove previously inserted photo section if present to avoid duplicate.
+          s,n=re.subn(r'<section id="drew-river-photo"\b.*?</section>\s*','',s,count=1,flags=re.S)
+          heading='<div class="eyebrow">In Memory of Andrew Faught</div>'
+          if s.count(heading)!=1:
+              raise RuntimeError('Could not uniquely locate Drew memorial heading')
+          photo='<figure id="drew-river-photo" style="margin:0 0 26px"><img src="memorial-images/drew-river.jpg" alt="Drew sitting by the river" loading="eager" style="display:block;width:100%;max-width:650px;height:auto;border-radius:12px;box-shadow:0 12px 35px #0009"></figure>'
+          s=s.replace(heading,photo+heading,1)
+          p.write_text(s,encoding='utf-8')
+          print('Removed previous separate section:',n,'; inserted directly above heading')
+          PY
+      - name: Commit precise photo placement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Position Drew river photo immediately above In Memory heading"
+            git push
+          fi
