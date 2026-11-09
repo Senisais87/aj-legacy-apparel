@@ -274,36 +274,47 @@ function garmentProfile(item){
  if(item.img.startsWith('style'))return {name:'Front chest — opposite the AJ logo',text:[.29,.40,.23,.065],rank:[.29,.31,.08,.09],state:[.85,.45,.13,.17],poly:[[.29,.2],[.59,.2],[.77,.37],[.83,.98],[.03,.98],[.05,.4]]};
  return {name:'Front chest — opposite the AJ logo',text:[.19,.32,.21,.065],rank:[.19,.235,.065,.08],state:[.55,.345,.14,.22],poly:[[.19,.02],[.43,.02],[.57,.16],[.59,.5],[.51,.53],[.49,.99],[.08,.99],[.1,.54],[0,.52],[.02,.19]]};
 }
-// Artwork selection is independent of the garment pictured in its reference.
+// Garment and artwork placement share the same live front/back proof.
 function openItem(item,index){
  document.getElementById('garment-preview')?.remove();
+ const oldReference=document.getElementById('artwork-reference');if(oldReference){oldReference.before(document.getElementById('selected-product-image'));oldReference.remove()}
  openDesignItem(item,index);
  if(item.kind==='hat'||item.img==='style1')return;
  const form=document.getElementById('custom-form'),wrap=document.getElementById('selected-product-image');
+ const gym=current==='gym'&&(item.concept||item.quoteDesign);
  const group=document.createElement('div');group.className='garment-choice';
- group.innerHTML=field('Garment style','garment-style',['Shirt','Hoodie'])+'<p class="note">Choose this artwork on a shirt or hoodie, regardless of the garment in the design image. Your existing personalization options still apply.</p>';
- form.prepend(group);
- const select=group.querySelector('select');select.value=/hoodie|pullover/i.test(item.title)?'Hoodie':'Shirt';
- const panel=document.createElement('section');panel.id='garment-preview';panel.className='garment-preview';panel.setAttribute('aria-live','polite');
- wrap.before(panel);
+ group.innerHTML=field('Garment style','garment-style',['Shirt','Hoodie'])+(gym?field('Main design placement','design-side',['Back','Front']):'');form.prepend(group);
+ const select=group.querySelector('#garment-style');select.value=/hoodie|pullover/i.test(item.title)?'Hoodie':'Shirt';
+ const panel=document.createElement('section');panel.id='garment-preview';panel.className='garment-preview';panel.setAttribute('aria-live','polite');wrap.before(panel);
+ const proof=document.createElement('canvas');proof.width=1000;proof.height=660;proof.style.cssText='width:100%;height:auto';proof.setAttribute('role','img');
+ const note=document.createElement('p');note.className='note';panel.append(proof,note);
+ const ref=document.createElement('details');ref.id='artwork-reference';const summary=document.createElement('summary');summary.textContent='Original artwork reference';wrap.before(ref);ref.append(summary,wrap);
+ const source=new Image();let loaded=false;
+ function extract(box){const c=document.createElement('canvas');c.width=Math.round(source.naturalWidth*box[2]);c.height=Math.round(source.naturalHeight*box[3]);const x=c.getContext('2d');x.drawImage(source,source.naturalWidth*box[0],source.naturalHeight*box[1],c.width,c.height,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height);for(let i=0;i<d.data.length;i+=4){const hi=Math.max(d.data[i],d.data[i+1],d.data[i+2]);d.data[i+3]=Math.round(Math.max(0,Math.min(1,(hi-65)/55))*255)}x.putImageData(d,0,0);return c}
  function refreshGarment(){
-  const style=select.value,color=garmentColors[form.querySelector('#color')?.value]||garmentColors.Black;
-  const shape=style==='Hoodie'?'<path d="M104 63 Q102 14 150 14 Q198 14 196 63 L228 80 L270 205 L230 220 L204 136 L207 294 L93 294 L96 136 L70 220 L30 205 L72 80Z"/><path d="M104 63 Q150 91 196 63 M108 243 Q150 231 192 243 L186 277 L114 277Z"/><path d="M136 78 L136 121 M164 78 L164 121"/>':'<path d="M105 52 Q150 77 195 52 L224 70 L267 125 L224 155 L203 126 L203 291 L97 291 L97 126 L76 155 L33 125 L76 70Z"/><path d="M124 60 Q150 91 176 60"/>';
-  panel.innerHTML='<div><span class="eyebrow">Your selected garment</span><h3>'+style+'</h3><p>Artwork: '+escapeHtml(item.title)+'</p><p class="note">The image below is your artwork reference. Its pictured garment does not limit your choice. A supplier proof will confirm the artwork on your selected '+style.toLowerCase()+'.</p></div><svg viewBox="0 0 300 320" role="img" aria-label="Selected '+style.toLowerCase()+' silhouette" width="160" height="170"><g fill="'+color+'" stroke="#aaaeb5" stroke-width="3" stroke-linejoin="round">'+shape+'</g></svg>';
-  document.getElementById('finished-design')?.remove();
+ const hoodie=select.value==='Hoodie',side=group.querySelector('#design-side')?.value||'Back',color=garmentColors[form.querySelector('#color')?.value]||garmentColors.Black;
+ const ctx=proof.getContext('2d');ctx.clearRect(0,0,1000,660);ctx.fillStyle='#20242c';ctx.fillRect(0,0,1000,660);
+ const path=hoodie?'M104 63 Q102 14 150 14 Q198 14 196 63 L228 80 L270 205 L230 220 L204 136 L207 294 L93 294 L96 136 L70 220 L30 205 L72 80Z':'M105 52 Q150 77 195 52 L224 70 L267 125 L224 155 L203 126 L203 291 L97 291 L97 126 L76 155 L33 125 L76 70Z';
+ for(let n=0;n<2;n++){ctx.save();ctx.translate(15+n*500,25);ctx.scale(1.55,1.85);ctx.fillStyle=color;ctx.strokeStyle='#858b96';ctx.lineWidth=1.5;ctx.fill(new Path2D(path));ctx.stroke(new Path2D(path));if(hoodie){ctx.stroke(new Path2D(n===0?'M104 63 Q150 91 196 63 M136 78 L136 113 M164 78 L164 113 M110 248 L190 248 L183 278 L117 278':'M104 63 Q150 138 196 63'))}ctx.restore();ctx.fillStyle='#eee';ctx.font='600 21px system-ui';ctx.textAlign='center';ctx.fillText(n===0?'FRONT':'BACK',250+n*500,620)}
+ if(loaded){
+ const paired=source.naturalWidth/source.naturalHeight>1.25;
+ const originalHoodie=/hoodie/i.test(item.title);const box=paired?[.60,originalHoodie?.24:.15,.29,originalHoodie?.43:.49]:[.23,.16,.57,.73];
+ const artwork=extract(box),mainX=side==='Front'?250:750,mainY=hoodie?230:185,maxW=165,maxH=hoodie?215:300,scale=Math.min(maxW/artwork.width,maxH/artwork.height),aw=artwork.width*scale,ah=artwork.height*scale;
+ ctx.drawImage(artwork,mainX-aw/2,mainY,aw,ah);
+ const logoX=side==='Back'?310:750,logoY=side==='Back'?195:(hoodie?200:155);
+ if(paired){const logo=extract([.322,.23,.08,.13]);ctx.drawImage(logo,logoX-24,logoY,48,52)}else{ctx.fillStyle='#e3e5e9';ctx.textAlign='center';ctx.font='bold 22px system-ui';ctx.fillText('AJ',logoX,logoY+20);ctx.font='8px system-ui';ctx.fillText('AJ LEGACY',logoX,logoY+33)}
+ // Preserve the original personalized front in the artwork reference and carry text into the live proof.
+ const personal=form.querySelector('#personal')?.value,text=form.querySelector('#personal-text')?.value.trim();if(personal&&personal!=='None'&&text){ctx.fillStyle=inkColors[form.querySelector('#unit-color')?.value]||'#fff';ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.fillText(text.toUpperCase(),190,210,105)}
  }
- function escapeHtml(text){return String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
- form.addEventListener('change',refreshGarment);refreshGarment();
- // Existing review builders keep their artwork and placement rules; add the independent garment choice.
- const reviewButton=form.querySelector('.continue-customize');
- if(reviewButton){const original=reviewButton.onclick;reviewButton.onclick=function(event){
-  if(original)original.call(this,event);
-  const review=document.getElementById('finished-design');if(!review)return;
-  const summary=document.createElement('p');summary.className='selected-garment-summary';summary.textContent='Selected garment: '+select.value+' · Artwork: '+item.title;
-  const copy=panel.cloneNode(true);copy.removeAttribute('id');copy.removeAttribute('aria-live');review.prepend(copy,summary);
-  const heading=review.querySelector(':scope > h3');
-  if(heading)heading.textContent='Your '+select.value.toLowerCase()+' design preview';
- }}
+ note.textContent=select.value+' · Main design: '+side.toLowerCase()+(gym?' · AJ logo: '+(side==='Back'?'front left chest':'back, centered near collar'):'')+' · Placement concept; final supplier proof required.';
+ proof.setAttribute('aria-label',item.title+'. '+note.textContent);proof.dataset.garment=select.value;proof.dataset.designSide=side;
+ document.getElementById('finished-design')?.remove();
+ }
+ source.onload=()=>{loaded=true;refreshGarment()};source.src=assets[item.img];
+ form.oninput=(function(previous){return function(e){if(previous)previous.call(this,e);refreshGarment()}})(form.oninput);
+ form.onchange=(function(previous){return function(e){if(previous)previous.call(this,e);refreshGarment()}})(form.onchange);
+ if(gym){const note=document.createElement('p');note.className='note';note.textContent='Choose front or back for the complete main design. Back design: AJ logo on front left chest. Front design: AJ logo centered on the back near the collar.';group.append(note)}
+ const button=form.querySelector('.continue-customize');if(button){const previous=button.onclick;button.onclick=function(e){if(previous)previous.call(this,e);const review=document.getElementById('finished-design');if(!review)return;const image=review.querySelector('img');if(image){image.src=proof.toDataURL('image/png');image.alt=proof.getAttribute('aria-label')}const p=document.createElement('p');p.textContent=note.textContent;review.prepend(p)}}refreshGarment();
 }
 function openDesignItem(item,index){
  if(item.quoteDesign){openQuoteItem(item,index);return;}
