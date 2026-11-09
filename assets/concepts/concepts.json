@@ -10,7 +10,17 @@
       "scripture": "Matthew 5:9",
       "verse": "Blessed are the peacemakers",
       "detail": "A blue-line shield and mountain design honoring those who protect and serve.",
-      "flag": "blue"
+      "flag": "blue",
+      "record": {
+        "title": "Peacemakers Scripture Tee",
+        "img": "concept-law-scripture",
+        "kind": "shirt",
+        "flag": "blue",
+        "concept": true,
+        "scripture": "Matthew 5:9",
+        "verse": "Blessed are the peacemakers",
+        "detail": "A blue-line shield and mountain design honoring those who protect and serve."
+      }
     },
     {
       "line": "doc",
@@ -19,7 +29,17 @@
       "scripture": "Joshua 1:9",
       "verse": "Be strong and of a good courage",
       "detail": "A silver-line corrections concept with a centered mountain-and-scripture back.",
-      "flag": "gray"
+      "flag": "gray",
+      "record": {
+        "title": "Courage Scripture Tee",
+        "img": "concept-doc-scripture",
+        "kind": "shirt",
+        "flag": "gray",
+        "concept": true,
+        "scripture": "Joshua 1:9",
+        "verse": "Be strong and of a good courage",
+        "detail": "A silver-line corrections concept with a centered mountain-and-scripture back."
+      }
     },
     {
       "line": "gym",
@@ -28,7 +48,17 @@
       "scripture": "Isaiah 40:31",
       "verse": "Shall renew their strength",
       "detail": "An eagle, mountains and barbell in steel silver and orange. Unisex performance tee concept.",
-      "flag": "none"
+      "flag": "none",
+      "record": {
+        "title": "Renewed Strength Training Tee",
+        "img": "concept-gym-renew",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "scripture": "Isaiah 40:31",
+        "verse": "Shall renew their strength",
+        "detail": "An eagle, mountains and barbell in steel silver and orange. Unisex performance tee concept."
+      }
     },
     {
       "line": "gym",
@@ -37,7 +67,17 @@
       "scripture": "Philippians 4:13",
       "verse": "I can do all things through Christ which strengtheneth me.",
       "detail": "A fleece training hoodie with scripture, mountain peaks and a barbell. Print sits below the hood.",
-      "flag": "none"
+      "flag": "none",
+      "record": {
+        "title": "Strength Through Christ Hoodie",
+        "img": "concept-gym-strength-hoodie",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "scripture": "Philippians 4:13",
+        "verse": "I can do all things through Christ which strengtheneth me.",
+        "detail": "A fleece training hoodie with scripture, mountain peaks and a barbell. Print sits below the hood."
+      }
     },
     {
       "line": "limited",
@@ -46,7 +86,17 @@
       "scripture": "Psalm 34:18",
       "verse": "The LORD is nigh unto them that are of a broken heart",
       "detail": "Silver wings and mountain sunrise honoring Andrew John Faught, 1997–2024.",
-      "flag": "none"
+      "flag": "none",
+      "record": {
+        "title": "Until Tomorrow Memorial Tee",
+        "img": "concept-memorial-until",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "scripture": "Psalm 34:18",
+        "verse": "The LORD is nigh unto them that are of a broken heart",
+        "detail": "Silver wings and mountain sunrise honoring Andrew John Faught, 1997–2024."
+      }
     },
     {
       "line": "limited",
@@ -55,7 +105,131 @@
       "scripture": "2 Corinthians 5:7",
       "verse": "We walk by faith, not by sight",
       "detail": "A mountain path and soft sunrise, with Andrew’s name and Until Tomorrow.",
-      "flag": "none"
+      "flag": "none",
+      "record": {
+        "title": "Walk by Faith Memorial Hoodie",
+        "img": "concept-memorial-faith-hoodie",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "scripture": "2 Corinthians 5:7",
+        "verse": "We walk by faith, not by sight",
+        "detail": "A mountain path and soft sunrise, with Andrew’s name and Until Tomorrow."
+      }
+    },
+    {
+      "line": "gym",
+      "key": "gym-earned",
+      "title": "Earned Not Given Training Tee",
+      "scripture": "",
+      "verse": "EARNED NOT GIVEN",
+      "detail": "Crimson red and white mountain-and-weight-plate artwork. A bold everyday training tee.",
+      "flag": "none",
+      "record": {
+        "title": "Earned Not Given Training Tee",
+        "img": "concept-gym-earned",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "scripture": "",
+        "verse": "EARNED NOT GIVEN",
+        "detail": "Crimson red and white mountain-and-weight-plate artwork. A bold everyday training tee."
+      }
+    },
+    {
+      "line": "gym",
+      "key": "gym-rep",
+      "title": "One More Rep Training Tee",
+      "scripture": "",
+      "verse": "ONE MORE REP",
+      "detail": "Electric teal and lime barbell artwork for one more focused rep.",
+      "flag": "none",
+      "record": {
+        "title": "One More Rep Training Tee",
+        "img": "concept-gym-rep",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "scripture": "",
+        "verse": "ONE MORE REP",
+        "detail": "Electric teal and lime barbell artwork for one more focused rep."
+      }
+    },
+    {
+      "line": "gym",
+      "key": "gym-discipline",
+      "title": "Discipline Builds Strength Hoodie",
+      "scripture": "",
+      "verse": "DISCIPLINE BUILDS STRENGTH",
+      "detail": "Magenta and violet mountain-and-barbell artwork centered below the hood.",
+      "flag": "none",
+      "record": {
+        "title": "Discipline Builds Strength Hoodie",
+        "img": "concept-gym-discipline",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "scripture": "",
+        "verse": "DISCIPLINE BUILDS STRENGTH",
+        "detail": "Magenta and violet mountain-and-barbell artwork centered below the hood."
+      }
+    },
+    {
+      "line": "limited",
+      "key": "memorial-lift",
+      "title": "Lift for a Legacy Event Tee",
+      "scripture": "",
+      "verse": "LIFT FOR A LEGACY",
+      "detail": "Proposed lift-event design: orange sunrise, silver wings and a barbell honoring Andrew John Faught. Additional concept alongside the supplied 2027 event shirt.",
+      "flag": "none",
+      "record": {
+        "title": "Lift for a Legacy Event Tee",
+        "img": "concept-memorial-lift",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "scripture": "",
+        "verse": "LIFT FOR A LEGACY",
+        "detail": "Proposed lift-event design: orange sunrise, silver wings and a barbell honoring Andrew John Faught. Additional concept alongside the supplied 2027 event shirt."
+      }
+    },
+    {
+      "line": "limited",
+      "key": "memorial-love",
+      "title": "Love Lives On Memorial Tee",
+      "scripture": "",
+      "verse": "LOVE LIVES ON",
+      "detail": "Blue wings, silver mountains and a warm sunrise honoring Andrew John Faught. Blue was Drew’s favorite color.",
+      "flag": "none",
+      "record": {
+        "title": "Love Lives On Memorial Tee",
+        "img": "concept-memorial-love",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "scripture": "",
+        "verse": "LOVE LIVES ON",
+        "detail": "Blue wings, silver mountains and a warm sunrise honoring Andrew John Faught. Blue was Drew’s favorite color."
+      }
+    },
+    {
+      "line": "limited",
+      "key": "memorial-carry",
+      "title": "Carry the Legacy Memorial Hoodie",
+      "scripture": "",
+      "verse": "CARRY THE LEGACY",
+      "detail": "A golden mountain sunrise and a winding path, with Andrew’s name and Until Tomorrow. Artwork sits below the hood.",
+      "flag": "none",
+      "record": {
+        "title": "Carry the Legacy Memorial Hoodie",
+        "img": "concept-memorial-carry",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "scripture": "",
+        "verse": "CARRY THE LEGACY",
+        "detail": "A golden mountain sunrise and a winding path, with Andrew’s name and Until Tomorrow. Artwork sits below the hood."
+      }
     }
   ],
   "scripture_sources": [
@@ -65,5 +239,14 @@
     "https://www.biblegateway.com/passage/?search=Philippians+4%3A13&version=KJV",
     "https://www.biblegateway.com/passage/?search=Psalm+34%3A18&version=KJV",
     "https://www.biblegateway.com/passage/?search=2+Corinthians+5%3A7&version=KJV"
-  ]
+  ],
+  "updated": "2026-11-09",
+  "approved_event": {
+    "image": "assets/events/legacy-strength-2027.png",
+    "title": "2027 Legacy of Strength Challenge Event Tee",
+    "source": "Owner supplied; preserved byte-for-byte",
+    "sponsor_back": "Pending final sponsor commitments and artwork",
+    "flyer": "Save-the-date flyer awaiting upload"
+  },
+  "memorial_color_note": "Blue was Drew’s favorite color. Love Lives On uses blue wings; the supplied event shirt is unchanged."
 }
