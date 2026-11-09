@@ -1,0 +1,41 @@
+name: Restore Drew river photo above memorial
+on:
+  push:
+    paths:
+      - '.github/workflows/restore-drew-river.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve original Drew river photograph
+        run: |
+          mkdir -p memorial-images
+          curl --fail --location --retry 3 --silent --show-error 'https://headless-gdsjykzadce-asenisais-1409.wix-site-host.com/drew-river-memorial.jpg' -o memorial-images/drew-river.jpg
+          test "$(wc -c < memorial-images/drew-river.jpg)" -gt 100000
+      - name: Place photo directly above In Memory Of section
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          if 'id="drew-river-photo"' not in s:
+              marker='<section class="memorial" id="memorial">'
+              if marker not in s:
+                  raise RuntimeError('Memorial section marker not found; refusing to alter homepage')
+              block='''<section id="drew-river-photo" aria-label="Drew by the river" style="padding:44px 20px 12px;background:#0a0b0e;text-align:center"><div style="max-width:850px;margin:0 auto"><img src="memorial-images/drew-river.jpg" alt="Drew sitting beside the river and waterfalls" style="display:block;width:100%;max-width:760px;height:auto;margin:0 auto;border-radius:12px;box-shadow:0 15px 45px #0009" loading="lazy"></div></section>'''
+              s=s.replace(marker,block+'\n'+marker,1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit restored memorial photograph
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html memorial-images/drew-river.jpg
+          if ! git diff --cached --quiet; then
+            git commit -m "Restore Drew river photograph above In Memory Of memorial"
+            git push
+          fi
