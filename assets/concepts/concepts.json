@@ -230,6 +230,69 @@
         "verse": "CARRY THE LEGACY",
         "detail": "A golden mountain sunrise and a winding path, with Andrew’s name and Until Tomorrow. Artwork sits below the hood."
       }
+    },
+    {
+      "line": "gym",
+      "key": "gym-undefeated",
+      "title": "Undefeated Training Tee",
+      "verse": "I was not delivered into this world in defeat nor does failure flow through my veins",
+      "detail": "Blue and silver mountains and barbell on a black performance tee.",
+      "scripture": "",
+      "flag": "none",
+      "record": {
+        "title": "Undefeated Training Tee",
+        "img": "concept-gym-undefeated",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "quoteDesign": true,
+        "garment": "Performance tee",
+        "verse": "I was not delivered into this world in defeat nor does failure flow through my veins",
+        "detail": "Blue and silver mountains and barbell on a black performance tee.",
+        "scripture": ""
+      }
+    },
+    {
+      "line": "gym",
+      "key": "gym-built-to-rise",
+      "title": "Built to Rise Training Tank",
+      "verse": "I was not delivered into this world in defeat nor does failure flow through my veins",
+      "detail": "Orange and silver mountain sunrise on a black training tank.",
+      "scripture": "",
+      "flag": "none",
+      "record": {
+        "title": "Built to Rise Training Tank",
+        "img": "concept-gym-built-to-rise",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "quoteDesign": true,
+        "garment": "Training tank",
+        "verse": "I was not delivered into this world in defeat nor does failure flow through my veins",
+        "detail": "Orange and silver mountain sunrise on a black training tank.",
+        "scripture": ""
+      }
+    },
+    {
+      "line": "gym",
+      "key": "gym-legacy-veins",
+      "title": "Legacy in My Veins Hoodie",
+      "verse": "I was not delivered into this world in defeat nor does failure flow through my veins",
+      "detail": "Blue and silver branching vein artwork on the back of a black hoodie.",
+      "scripture": "",
+      "flag": "none",
+      "record": {
+        "title": "Legacy in My Veins Hoodie",
+        "img": "concept-gym-legacy-veins",
+        "kind": "shirt",
+        "flag": "none",
+        "concept": true,
+        "quoteDesign": true,
+        "garment": "Hoodie",
+        "verse": "I was not delivered into this world in defeat nor does failure flow through my veins",
+        "detail": "Blue and silver branching vein artwork on the back of a black hoodie.",
+        "scripture": ""
+      }
     }
   ],
   "scripture_sources": [
@@ -248,5 +311,10 @@
     "sponsor_back": "Pending final sponsor commitments and artwork",
     "flyer": "Save-the-date flyer awaiting upload"
   },
-  "memorial_color_note": "Blue was Drew’s favorite color. Love Lives On uses blue wings; the supplied event shirt is unchanged."
+  "memorial_color_note": "Blue was Drew’s favorite color. Love Lives On uses blue wings; the supplied event shirt is unchanged.",
+  "quote_collection": {
+    "quote": "I was not delivered into this world in defeat nor does failure flow through my veins",
+    "board": "assets/concepts/gym-undefeated-board.webp",
+    "source": "Approved original concept board; individual garment previews cropped from original artwork"
+  }
 }
