@@ -3,9 +3,10 @@
 (function(){
  'use strict';
  const template=new Image();template.src='assets/mockups/blank-garments.png';
+ const scripture=new Image();scripture.src='assets/artwork/matthew-5-9.png';
  const logoSource=new Image();logoSource.src='assets/concepts/gym-renew.webp';
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
- function tile(source,box){
+ function tile(source,box,trim=true){
   const w=source.naturalWidth||source.width,h=source.naturalHeight||source.height;
   const c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*box[2]));c.height=Math.max(1,Math.round(h*box[3]));
   const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(source,w*box[0],h*box[1],w*box[2],h*box[3],0,0,c.width,c.height);
@@ -18,7 +19,13 @@
    d[i+3]=Math.round(d[i+3]*alpha);
    // RGB stays at its original strength. Do not multiply RGB by alpha a second time.
   }
-  ctx.putImageData(pixels,0,0);return c;
+  ctx.putImageData(pixels,0,0);if(!trim)return c;
+  // Center the visible ink rather than the source photo's uneven fabric margins.
+  let left=c.width,top=c.height,right=-1,bottom=-1;
+  for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++)if(d[(y*c.width+x)*4+3]>100){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y)}
+  if(right<left)return c;
+  const trimmed=document.createElement('canvas');trimmed.width=right-left+1;trimmed.height=bottom-top+1;
+  trimmed.getContext('2d').drawImage(c,left,top,trimmed.width,trimmed.height,0,0,trimmed.width,trimmed.height);return trimmed;
  }
  function place(ctx,art,cx,top,maxW,maxH){const s=Math.min(maxW/art.width,maxH/art.height);ctx.drawImage(art,cx-art.width*s/2,top,art.width*s,art.height*s)}
  function garment(ctx,hoodie,back,color){
@@ -36,9 +43,9 @@
   create(canvas,onReady){
    let disposed=false;
    const ready=()=>{if(!disposed)onReady()};
-   template.addEventListener('load',ready);logoSource.addEventListener('load',ready);
+   template.addEventListener('load',ready);scripture.addEventListener('load',ready);logoSource.addEventListener('load',ready);
    return {
-    dispose(){disposed=true;template.removeEventListener('load',ready);logoSource.removeEventListener('load',ready)},
+    dispose(){disposed=true;template.removeEventListener('load',ready);scripture.removeEventListener('load',ready);logoSource.removeEventListener('load',ready)},
     draw(v){
      if(!template.complete||!template.naturalWidth)return false;
      canvas.width=1536;canvas.height=574;const ctx=canvas.getContext('2d');
@@ -49,13 +56,17 @@
      const maxH=v.hoodie?(mainOnFront?245:265):310;
      if(v.source){
       // Artwork-specific source windows avoid clipping the quote or bottom wordmark.
-      const box=v.mainBox||(v.paired?[.595,v.originalHoodie?.24:.15,.30,v.originalHoodie?.50:.62]:[.23,.16,.57,.73]);
-      if(!v.blankBack)place(ctx,tile(v.source,box),384+offset,y,v.hoodie?223:250,maxH);
+      const profiles={'shirt2_0':[.67,.065,.29,.83],'shirt2_2':[.63,.09,.32,.80],'concept-law-scripture':[.65,.155,.215,.44],'concept-doc-scripture':[.64,.15,.24,.53]};
+      const box=v.mainBox||profiles[v.artKey]||(v.paired?[.635,v.originalHoodie?.24:.085,.33,v.originalHoodie?.63:.76]:[.23,.16,.57,.73]);
+      const rebuilt=/^shirt2_[02]$/.test(v.artKey);
+      const clean=rebuilt&&scripture.complete&&scripture.naturalWidth?tile(scripture,[.17,.05,.67,.92]):tile(v.source,box);
+      if(rebuilt){const c=clean.getContext('2d'),p=c.getImageData(0,0,clean.width,clean.height),d=p.data;for(let i=0;i<d.length;i+=4){if(Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])>24){const gray=Math.max(d[i],d[i+1],d[i+2]);d[i]=d[i+1]=d[i+2]=gray}}c.putImageData(p,0,0)}
+      if(!v.blankBack)place(ctx,clean,384+offset,y,v.hoodie?223:250,maxH);
       if(v.event){
        ctx.fillStyle='#454545';ctx.textAlign='center';ctx.font='600 20px system-ui';ctx.fillText('Sponsor artwork pending',1152,280);
       }else if(v.service&&v.paired){
        // Carry the existing personalized front, rank and sleeve graphics into the photo proof.
-       place(ctx,tile(v.source,v.frontBox||[.12,.17,.28,.27]),384,123,235,150);
+       place(ctx,tile(v.source,v.frontBox||[.12,.17,.28,.27],false),384,123,235,150);
        if(v.sleeves){v.sleeves(ctx,tile)}
       }else{
        const logo=v.paired?tile(v.source,[.322,v.originalHoodie?.27:.23,.08,.13]):logoSource.complete&&logoSource.naturalWidth?tile(logoSource,[.322,.23,.08,.13]):null;
