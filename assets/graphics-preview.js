@@ -64,7 +64,7 @@
        }ctx.drawImage(c,back*768,0);
       }
       if(v.source){
-       if(v.special==='joggers')place(ctx,tile(v.source,[.60,.24,.14,.14]),428,365,38,45);
+       if(v.special==='joggers')place(ctx,tile(v.source,[.60,.24,.14,.14]),428,365,28,34);
        else{
         let box=v.artKey.startsWith('hatdept')?[.18,.18,.30,.42]:/beanie/i.test(v.title)?[.35,.49,.31,.31]:[.44,.27,.27,.43];
         let front=tile(v.source,box),back=logoSource.complete&&logoSource.naturalWidth?tile(logoSource,[.322,.23,.08,.13]):front;
@@ -73,10 +73,10 @@
         }else front=back;
         if(v.layout?.startsWith('AJ Legacy')){front=back;back=null;}
         if(v.flag){const x=front.getContext('2d'),p=x.getImageData(0,0,front.width,front.height),d=p.data,rgb=({'Blue':[40,112,237],'Orange':[244,119,33],'Red':[210,40,50],'Green':[40,150,80],'Purple':[145,65,190]}[v.flag]||[181,184,189]);for(let i=0;i<d.length;i+=4){const hi=Math.max(d[i],d[i+1],d[i+2]),lo=Math.min(d[i],d[i+1],d[i+2]);if(hi-lo>24)for(let k=0;k<3;k++)d[i+k]=rgb[k]*hi/255}x.putImageData(p,0,0);}
-        place(ctx,front,384,row===2?250:row===3?93:75,130,row===2?108:105);
-        if(back)place(ctx,back,1152,row===2?260:row===3?93:88,65,65);
-        else{ctx.save();ctx.translate(1110,95);ctx.fillStyle='#e8e8e8';ctx.fillRect(0,0,84,48);ctx.fillStyle='#181818';for(let y=0;y<48;y+=8)ctx.fillRect(0,y,84,4);ctx.fillStyle=({'Blue':'#2870ed','Orange':'#f47721','Red':'#d22832','Green':'#289650','Purple':'#9141be'}[v.flag]||'#b5b8bd');ctx.fillRect(0,24,84,4);ctx.fillStyle='#181818';ctx.fillRect(0,0,35,24);ctx.restore();}
-        if(v.text){ctx.fillStyle=v.ink||'#fff';ctx.textAlign='center';ctx.font='bold 17px system-ui';ctx.fillText(v.text,255,row===2?285:155,110);}
+        place(ctx,front,384,row===2?250:row===3?93:75,90,row===2?58:64);
+        if(back)place(ctx,back,1152,row===2?260:row===3?93:88,44,44);
+        else{ctx.save();ctx.translate(1124,100);ctx.scale(.67,.67);ctx.fillStyle='#e8e8e8';ctx.fillRect(0,0,84,48);ctx.fillStyle='#181818';for(let y=0;y<48;y+=8)ctx.fillRect(0,y,84,4);ctx.fillStyle=({'Blue':'#2870ed','Orange':'#f47721','Red':'#d22832','Green':'#289650','Purple':'#9141be'}[v.flag]||'#b5b8bd');ctx.fillRect(0,24,84,4);ctx.fillStyle='#181818';ctx.fillRect(0,0,35,24);ctx.restore();}
+        if(v.text){ctx.fillStyle=v.ink||'#fff';ctx.textAlign='center';ctx.font='bold 13px system-ui';ctx.fillText(v.text,255,row===2?285:155,75);}
        }
       }
       ctx.fillStyle='#e9e6e1';ctx.fillRect(0,768,1536,62);ctx.fillStyle='#242424';ctx.textAlign='center';ctx.font='600 20px system-ui';ctx.fillText('FRONT',384,806);ctx.fillText('BACK',1152,806);canvas.dataset.previewEngine='ai-model-photo';return true;
@@ -87,8 +87,9 @@
      garment(ctx,v.hoodie,0,v.color);garment(ctx,v.hoodie,1,v.color);
      ctx.save();ctx.translate(0,v.hoodie?185:150);
      const mainOnFront=v.side==='Front',offset=mainOnFront?0:768;
-     const y=mainOnFront&&v.text?188:v.hoodie?(mainOnFront?153:164):123;
-     const maxH=v.hoodie?(mainOnFront?245:265):310;
+     // Sizes are anchored to the visible torso, with clearance above hoodie pockets.
+     const y=v.hoodie?(mainOnFront?155:164):(mainOnFront?135:123);
+     const maxH=v.hoodie?(mainOnFront?105:220):(mainOnFront?205:240);
      if(v.source){
       // Artwork-specific source windows avoid clipping the quote or bottom wordmark.
       const profiles={'shirt2_0':[.67,.065,.29,.83],'shirt2_2':[.63,.09,.32,.80],'concept-law-scripture':[.65,.155,.215,.44],'concept-doc-scripture':[.64,.15,.24,.53]};
@@ -96,18 +97,18 @@
       const rebuilt=/^shirt2_[02]$/.test(v.artKey);
       const clean=rebuilt&&scripture.complete&&scripture.naturalWidth?tile(scripture,[.17,.05,.67,.92]):tile(v.source,box);
       if(rebuilt){const c=clean.getContext('2d'),p=c.getImageData(0,0,clean.width,clean.height),d=p.data;for(let i=0;i<d.length;i+=4){if(Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])>24){const rgb={'Blue':[40,112,237],'Orange':[244,119,33],'Red':[210,40,50],'Green':[40,150,80],'Purple':[145,65,190],'Silver / gray':[181,184,189],'None — monochrome':[215,217,220]}[v.flag]||[181,184,189];const light=Math.max(d[i],d[i+1],d[i+2])/255;for(let k=0;k<3;k++)d[i+k]=Math.round(rgb[k]*light)}}c.putImageData(p,0,0)}
-      if(!v.blankBack)place(ctx,clean,384+offset,y,v.hoodie?223:250,maxH);
+      if(!v.blankBack)place(ctx,clean,384+offset,y,v.hoodie?(mainOnFront?145:170):180,maxH);
       if(v.event){
        ctx.fillStyle='#454545';ctx.textAlign='center';ctx.font='600 20px system-ui';ctx.fillText('Sponsor artwork pending',1152,280);
       }else if(v.service&&v.paired){
        // Carry the existing personalized front, rank and sleeve graphics into the photo proof.
-       place(ctx,tile(v.source,v.frontBox||[.12,.17,.28,.27],false),384,123,235,150);
-       if(v.sleeves){v.sleeves(ctx,tile)}
+       place(ctx,tile(v.source,v.frontBox||[.12,.17,.28,.27],false),384,v.hoodie?146:123,v.hoodie?140:155,v.hoodie?98:105);
+       if(v.sleeves){v.sleeves({drawImage(art,x){ctx.drawImage(art,x===516?518:224,v.hoodie?172:147,20,25)}},tile)}
       }else{
        const logo=v.paired?tile(v.source,[.322,v.originalHoodie?.27:.23,.08,.13]):logoSource.complete&&logoSource.naturalWidth?tile(logoSource,[.322,.23,.08,.13]):null;
        const lx=mainOnFront?1152:446,ly=mainOnFront?(v.hoodie?155:76):(v.hoodie?147:126);
-       if(logo)place(ctx,logo,lx,ly,mainOnFront?48:67,mainOnFront?47:66);
-       if(v.text){ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=v.ink;let fs=20;ctx.font='700 '+fs+'px system-ui';while(ctx.measureText(v.text).width>130&&fs>8){fs--;ctx.font='700 '+fs+'px system-ui'}ctx.fillText(v.text,318,v.hoodie?175:153);ctx.restore()}
+       if(logo)place(ctx,logo,lx,ly,mainOnFront?32:44,mainOnFront?32:44);
+       if(v.text){ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=v.ink;let fs=15;ctx.font='700 '+fs+'px system-ui';while(ctx.measureText(v.text).width>85&&fs>8){fs--;ctx.font='700 '+fs+'px system-ui'}ctx.fillText(v.text,318,v.hoodie?175:153);ctx.restore()}
       }
      }
      ctx.restore();ctx.fillStyle='#e9e6e1';ctx.fillRect(0,768,1536,62);ctx.fillStyle='#242424';ctx.textAlign='center';ctx.font='600 20px system-ui';ctx.fillText('FRONT',384,806);ctx.fillText('BACK',1152,806);
