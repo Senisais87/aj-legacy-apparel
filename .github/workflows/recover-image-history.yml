@@ -1,0 +1,47 @@
+name: Recover missing AJ Legacy image assets from repository history
+on:
+  push:
+    paths:
+      - '.github/workflows/recover-image-history.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore only missing previously committed images
+        run: |
+          python3 - <<'PY'
+          import subprocess,pathlib
+          roots=('assets/','line-images/','original_photos/','memorial-images/')
+          extensions=('.png','.jpg','.jpeg','.webp','.gif','.svg')
+          objects=subprocess.check_output(['git','rev-list','--objects','--all'],text=True).splitlines()
+          recovered=[];missing=[]
+          for item in objects:
+              bits=item.split(' ',1)
+              if len(bits)!=2: continue
+              oid,path=bits
+              if not path.startswith(roots) or not path.lower().endswith(extensions): continue
+              dest=pathlib.Path(path)
+              if dest.exists() or '..' in dest.parts: continue
+              if subprocess.run(['git','cat-file','-t',oid],capture_output=True,text=True).stdout.strip()!='blob': continue
+              dest.parent.mkdir(parents=True,exist_ok=True)
+              dest.write_bytes(subprocess.check_output(['git','cat-file','blob',oid]))
+              recovered.append(path)
+          report=pathlib.Path('IMAGE_RECOVERY_REPORT.md')
+          report.write_text('# AJ Legacy image recovery from Git history\n\nRestored only image paths missing from current checkout. Existing files were not overwritten.\n\nRecovered: '+str(len(recovered))+'\n\n'+''.join('- '+p+'\n' for p in sorted(recovered))+'\nNote: Images never committed to this repository cannot be recovered by this workflow.\n')
+          print('Restored',len(recovered),'image files')
+          PY
+      - name: Commit recovered images and report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets line-images original_photos memorial-images IMAGE_RECOVERY_REPORT.md 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "Restore missing AJ Legacy images from Git history without overwriting artwork"
+            git push
+          fi
