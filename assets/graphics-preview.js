@@ -118,3 +118,6 @@
   }
  };
 })();
+
+// Keep nested collection-card handling from swallowing the K9 navigation link.
+document.addEventListener('click',function(event){const link=event.target.closest?.('a[href]');if(link&&/service-designs\.html\?category=k9/.test(link.getAttribute('href'))){event.preventDefault();event.stopImmediatePropagation();location.assign(new URL('k9-collection.html',location.href).href)}},true);
