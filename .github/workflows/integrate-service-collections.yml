@@ -1,0 +1,41 @@
+name: Integrate First Responder and Law Enforcement K9 on original homepage
+on:
+  push:
+    paths:
+      - '.github/workflows/integrate-service-collections.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Safely add service collection entry points without replacing original artwork
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("index.html")
+          s=p.read_text(encoding="utf-8")
+          marker='<article class="card" data-group="service" data-line="doc"'
+          if 'id="aj-service-collection-integration"' not in s:
+              assert s.count(marker)==1, "DOC collection insertion point must be unique"
+              card='''<article class="card aj-service-recovery" data-group="service" data-line="first" data-search="first responder fire rescue firefighter ems paramedics dispatch"><div class="aj-service-group" aria-label="Fire Rescue EMS and Dispatch collection"><div style="--accent:#c8242b"><strong>FIRE &amp; RESCUE</strong><small>RED LINE</small></div><div style="--accent:#eeeeee"><strong>EMS / PARAMEDICS</strong><small>WHITE LINE</small></div><div style="--accent:#e3b126"><strong>911 DISPATCH</strong><small>GOLD LINE</small></div></div><div class="body"><div class="tag">First Responder Collection</div><h3>First Responders</h3><p>Fire &amp; Rescue, EMS / Paramedics, and Dispatch. Choose your service and customize individual designs.</p><a class="aj-collection-link" href="service-designs.html">Explore First Responder Designs</a></div></article>'''
+              s=s.replace(marker,card+'\n'+marker,1)
+              law='Designed to honor the commitment and courage of those who protect and serve.</p>'
+              assert s.count(law)==1, "Law Enforcement card description must be unique"
+              s=s.replace(law,'Designed to honor the commitment and courage of those who protect and serve. <a class="aj-k9-link" href="service-designs.html?category=k9">Law Enforcement K9 / Canine designs</a></p>',1)
+              css='''<style id="aj-service-collection-integration">.aj-service-group{height:245px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:12px;background:linear-gradient(135deg,#11151c,#2a2e35,#0b0c10)}.aj-service-group>div{border:1px solid var(--accent);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;text-align:center;padding:8px;color:#fff;background:linear-gradient(145deg,#30343b,#101319)}.aj-service-group strong{font-size:clamp(10px,1.5vw,16px);line-height:1.3}.aj-service-group small{font-size:10px;color:var(--accent);font-weight:800}.aj-collection-link,.aj-k9-link{color:#ffb073!important;text-decoration:underline!important;display:inline-block;margin-top:9px;font-weight:750}.aj-service-recovery .body{min-height:180px}@media(max-width:600px){.aj-service-group{height:165px;padding:7px;gap:3px}.aj-service-group strong{font-size:9px}.aj-service-group small{font-size:8px}}</style>'''
+              assert '</head>' in s
+              s=s.replace('</head>',css+'</head>',1)
+              p.write_text(s,encoding="utf-8")
+          PY
+      - name: Commit original homepage integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Integrate First Responder and Law Enforcement K9 into preserved homepage"
+            git push
+          fi
