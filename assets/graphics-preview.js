@@ -51,7 +51,7 @@
    return {
     dispose(){disposed=true;hats.removeEventListener('load',ready);joggers.removeEventListener('load',ready);template.removeEventListener('load',ready);scripture.removeEventListener('load',ready);logoSource.removeEventListener('load',ready)},
     draw(v){
-     if(v.special){
+     if(v.special||/^style[0-9]+$/.test(v.artKey)){
       if(!v.source)return false;canvas.width=v.source.naturalWidth;canvas.height=v.source.naturalHeight;
       canvas.getContext('2d').drawImage(v.source,0,0);canvas.dataset.previewEngine='original-product-photo';return true;
      }
@@ -62,27 +62,27 @@
      ctx.save();ctx.translate(0,0);
      const mainOnFront=v.side==='Front',offset=mainOnFront?0:768;
      // Sizes are anchored to the visible torso, with clearance above hoodie pockets.
-     const y=v.hoodie?(mainOnFront?230:220):(mainOnFront?140:110);
-     const maxH=v.hoodie?(mainOnFront?195:365):(mainOnFront?480:500);
+     const y=v.hoodie?(mainOnFront?235:225):(mainOnFront?185:160);
+     const maxH=v.hoodie?(mainOnFront?190:335):(mainOnFront?310:335);
      if(v.source){
       // Artwork-specific source windows avoid clipping the quote or bottom wordmark.
       const profiles={'shirt2_0':[.67,.065,.29,.83],'shirt2_2':[.63,.09,.32,.80],'concept-law-scripture':[.65,.155,.215,.44],'concept-doc-scripture':[.64,.15,.24,.53]};
       const box=v.mainBox||profiles[v.artKey]||(v.paired?[.635,v.originalHoodie?.24:.085,.33,v.originalHoodie?.63:.76]:[.23,.16,.57,.73]);
-      const rebuilt=/^shirt2_[02]$/.test(v.artKey);
+      const rebuilt=false;
       const clean=rebuilt&&scripture.complete&&scripture.naturalWidth?tile(scripture,[.17,.05,.67,.92]):tile(v.source,box);
       if(rebuilt){const c=clean.getContext('2d'),p=c.getImageData(0,0,clean.width,clean.height),d=p.data;for(let i=0;i<d.length;i+=4){if(Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])>24){const rgb={'Blue':[40,112,237],'Orange':[244,119,33],'Red':[210,40,50],'Green':[40,150,80],'Purple':[145,65,190],'Silver / gray':[181,184,189],'None — monochrome':[215,217,220]}[v.flag]||[181,184,189];const light=Math.max(d[i],d[i+1],d[i+2])/255;for(let k=0;k<3;k++)d[i+k]=Math.round(rgb[k]*light)}}c.putImageData(p,0,0)}
-      if(!v.blankBack)place(ctx,clean,384+offset,y,v.hoodie?(mainOnFront?270:340):340,maxH);
+      if(!v.blankBack)place(ctx,clean,384+offset,y,235,maxH);
       if(v.event){
        ctx.fillStyle='#454545';ctx.textAlign='center';ctx.font='600 20px system-ui';ctx.fillText('Sponsor artwork pending',1152,280);
-      }else if(v.service&&v.paired){
+      }else if(v.service&&v.paired&&!/^concept-/.test(v.artKey)){
        // Carry the existing personalized front, rank and sleeve graphics into the photo proof.
-       place(ctx,tile(v.source,v.frontBox||[.12,.17,.28,.27],false),384,v.hoodie?146:123,v.hoodie?140:155,v.hoodie?98:105);
+       place(ctx,tile(v.source,v.frontBox||[.12,.17,.28,.27]),384,v.hoodie?185:175,205,95);
        if(v.sleeves){v.sleeves({drawImage(art,x){ctx.drawImage(art,x===516?518:224,v.hoodie?172:147,20,25)}},tile)}
       }else{
        const logo=v.paired?tile(v.source,[.322,v.originalHoodie?.27:.23,.08,.13]):logoSource.complete&&logoSource.naturalWidth?tile(logoSource,[.322,.23,.08,.13]):null;
-       const lx=mainOnFront?1152:446,ly=mainOnFront?(v.hoodie?155:76):(v.hoodie?147:126);
-       if(logo)place(ctx,logo,lx,ly,mainOnFront?32:44,mainOnFront?32:44);
-       if(v.text){ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=v.ink;let fs=15;ctx.font='700 '+fs+'px system-ui';while(ctx.measureText(v.text).width>85&&fs>8){fs--;ctx.font='700 '+fs+'px system-ui'}ctx.fillText(v.text,318,v.hoodie?175:153);ctx.restore()}
+       const lx=mainOnFront?1152:446,ly=mainOnFront?(v.hoodie?205:130):(v.hoodie?190:175);
+       if(logo)place(ctx,logo,lx,ly,mainOnFront?44:62,mainOnFront?44:62);
+       if(v.text){ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=v.ink;let fs=15;ctx.font='700 '+fs+'px system-ui';while(ctx.measureText(v.text).width>85&&fs>8){fs--;ctx.font='700 '+fs+'px system-ui'}ctx.fillText(v.text,318,v.hoodie?210:195);ctx.restore()}
       }
      }
      ctx.restore();ctx.fillStyle='#e9e6e1';ctx.fillRect(0,768,1536,62);ctx.fillStyle='#242424';ctx.textAlign='center';ctx.font='600 20px system-ui';ctx.fillText('FRONT',384,806);ctx.fillText('BACK',1152,806);
