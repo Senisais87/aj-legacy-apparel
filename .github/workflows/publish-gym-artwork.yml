@@ -1,0 +1,54 @@
+name: Publish approved Gym Collection artwork
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-gym-artwork.yml'
+      - 'New gym design .zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Extract selected artwork and connect product images
+        run: |
+          python3 - <<'PY'
+          import zipfile, pathlib, re, html
+          archive=pathlib.Path('New gym design .zip')
+          assert archive.is_file(), 'Uploaded gym artwork archive not found'
+          out=pathlib.Path('assets/gym-selected')
+          out.mkdir(parents=True,exist_ok=True)
+          with zipfile.ZipFile(archive) as z:
+              for i in range(1,7):
+                  filename=f'gym-{i:02}.jpg'
+                  matches=[n for n in z.namelist() if pathlib.PurePosixPath(n).name.lower()==filename]
+                  assert len(matches)==1, f'Missing or duplicate {filename}'
+                  data=z.read(matches[0])
+                  assert data[:3]==b'\xff\xd8\xff', f'Not a JPEG: {filename}'
+                  (out/filename).write_bytes(data)
+          page=pathlib.Path('gym-collection.html')
+          content=page.read_text(encoding='utf-8')
+          for i in range(1,7):
+              pattern=r'<div class="art" role="img" aria-label="([^"]*)">Selected artwork pending upload</div>'
+              match=re.search(pattern,content)
+              assert match, f'Artwork placeholder {i} not found'
+              alt=html.escape(match.group(1).replace('Artwork pending for ',''))
+              replacement=f'<img class="art-image" src="./assets/gym-selected/gym-{i:02}.jpg" alt="{alt}" loading="lazy">'
+              content=content[:match.start()]+replacement+content[match.end():]
+          content=content.replace('Artwork image publishing, garment selection, and pricing are pending.','Garment selection and pricing are pending.')
+          content=content.replace('</style>','.art-image{display:block;width:100%;height:290px;object-fit:contain;background:#0c0d11}</style>')
+          page.write_text(content,encoding='utf-8')
+          PY
+      - name: Commit selected artwork and collection page
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/gym-selected/gym-*.jpg gym-collection.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish six approved Gym Collection artwork images"
+            git push
+          fi
