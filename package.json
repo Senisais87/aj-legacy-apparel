@@ -1,0 +1,32 @@
+{
+  "name": "site",
+  "version": "1.0.0",
+  "description": "Official website for AJ Legacy Apparel — HONOR • PREPARE • ENDURE",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild customizer/src/App.jsx --bundle --minify --outfile=assets/customizer.js && tailwindcss -i customizer/src/styles.css -o assets/customizer.css --minify",
+    "test": "node --test customizer/src/rules.test.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Senisais87/aj-legacy-apparel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Senisais87/aj-legacy-apparel/issues"
+  },
+  "homepage": "https://github.com/Senisais87/aj-legacy-apparel#readme",
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.5",
+    "esbuild": "^0.28.2",
+    "tailwindcss": "^4.3.5"
+  },
+  "private": true
+}

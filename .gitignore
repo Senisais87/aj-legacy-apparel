@@ -1,0 +1,3 @@
+node_modules/
+.openai/
+preview-dist/
