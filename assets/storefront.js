@@ -39,6 +39,28 @@ if(window.AJStore){
  // Each step has its own address and a normal browser navigation.
  document.querySelectorAll('[data-open]').forEach(button=>button.addEventListener('click',event=>{event.stopImmediatePropagation();location.assign(collectionURL(button.dataset.open))},true));
  document.querySelectorAll('#cards .card').forEach(card=>{card.style.cursor='pointer';card.addEventListener('click',event=>{if(event.target.closest('a,button'))return;location.assign(card.dataset.line==='first'?link('first'):collectionURL(card.dataset.line))})});
+ // Append the selected designs so existing product URLs retain their indices.
+ if(actual==='gym'){
+  const selectedGymDesigns=[
+   ['gym-01.jpg','Sun Warrior — Bigger Than the Sun'],
+   ['gym-02.jpg','Eclipse Deadlift — Bigger Than the Sun'],
+   ['gym-03.jpg','Cane Corso — Bigger Than the Sun'],
+   ['gym-04.jpg','Pit Bull — Built for Strength'],
+   ['gym-05.jpg','Cane Corso — Discipline Builds Beasts'],
+   ['gym-06.jpg','Pit Bull — Loyalty Builds Strength'],
+   ['gym-07-quote-proof.svg','Mind Over Body — Andrew Faught'],
+  ];
+  for(const [file,title] of selectedGymDesigns){
+   const img='selected-'+file.split('.')[0];
+   const quoteDesign=file.endsWith('.svg');
+   assets[img]=url('assets/gym-selected/'+file);
+   store.lines.gym.push({
+    img,title,kind:'shirt',flag:'none',concept:true,quoteDesign,
+    verse:quoteDesign?'Do the things you don’t want to do to show your body that your mind is the boss.':'',
+    detail:quoteDesign?'Drew’s words on training and discipline.':'Selected Gym Attire artwork.',
+   });
+  }
+ }
  if(actual&&store.lines[actual]){
   store.openLine(actual);setCollection(key);document.body.dataset.activeCollection=key;
   // The legacy renderer updates hashes. Keep the explicit route authoritative.
@@ -46,6 +68,11 @@ if(window.AJStore){
   const entries=store.lines[actual];
   if(params.has('product')&&Number.isInteger(Number(params.get('product')))&&entries[Number(params.get('product'))]){
    const index=Number(params.get('product'));store.openItem(entries[index],index);
+   // The shared placement studio does not have these artwork files in its design picker.
+   if(entries[index].img.startsWith('selected-gym-')){
+    const studioLink=document.getElementById('interactive-studio-link');
+    if(studioLink)studioLink.hidden=true;
+   }
    const shell=document.createElement('div');shell.className='aj-product-workspace aj-dedicated-customizer';
    const center=document.createElement('section');center.className='aj-preview-column';center.setAttribute('aria-label','Garment preview');
    const controls=document.createElement('section');controls.className='aj-controls-column';controls.setAttribute('aria-label','Customization options');
@@ -56,27 +83,6 @@ if(window.AJStore){
    history.replaceState(null,'',url('index.html?'+params.toString()));
   }else{
    grid.addEventListener('click',event=>{const tile=event.target.closest('.product-tile');if(!tile)return;event.stopImmediatePropagation();const index=[...grid.children].indexOf(tile);location.assign(collectionURL(key,sub)+'&product='+index)},true);
-   if(actual==='gym'){
-    const selected=[
-     ['gym-01.jpg','Sun Warrior — Bigger Than the Sun'],
-     ['gym-02.jpg','Eclipse Deadlift — Bigger Than the Sun'],
-     ['gym-03.jpg','Cane Corso — Bigger Than the Sun'],
-     ['gym-04.jpg','Pit Bull — Built for Strength'],
-     ['gym-05.jpg','Cane Corso — Discipline Builds Beasts'],
-     ['gym-06.jpg','Pit Bull — Loyalty Builds Strength'],
-     ['gym-07-quote-proof.svg','Mind Over Body — Andrew Faught'],
-    ];
-    const gallery=document.createElement('section');
-    gallery.setAttribute('aria-labelledby','gym-selected-title');
-    gallery.innerHTML=`<h2 id="gym-selected-title">Selected Gym Designs</h2>
-     <p><a href="${url('gym-collection.html')}">View the black T-shirt mockups</a></p>
-     <div class="product-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px">${selected.map(([file,title])=>`
-      <article class="product-tile">
-       <img src="${url('assets/gym-selected/'+file)}" alt="${title}" style="object-fit:contain;width:100%">
-       <strong>${title}</strong>
-      </article>`).join('')}</div>`;
-    grid.before(gallery);
-   }
    if(actual==='law'||actual==='doc'){
     const groups=document.createElement('nav');groups.className='aj-subline-links';groups.setAttribute('aria-label','Choose a sub-line');
     const options=actual==='law'?[['all','All Law Enforcement designs'],['k9','K9 / Canine']]:[['all','All DOC designs'],['trt','Tactical Response Team (TRT)']];
