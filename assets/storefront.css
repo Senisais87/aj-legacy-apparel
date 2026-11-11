@@ -55,3 +55,11 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
   width:100%;height:auto;max-height:100%;
  }
 }
+
+/* Mobile memorial header: fade the bottom of the civilian portrait before the stray silver artwork, preserving the approved photograph and navigation. */
+@media(max-width:760px){
+ .aj-masthead .civilian,.aj-legacy-portrait-header>.civilian{
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 69%,transparent 84%)!important;
+  mask-image:linear-gradient(to bottom,#000 0%,#000 69%,transparent 84%)!important;
+ }
+}
