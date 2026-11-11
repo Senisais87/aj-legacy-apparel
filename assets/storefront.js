@@ -5,10 +5,27 @@ const root=new URL('../',document.currentScript.src),url=p=>new URL(p,root).href
 const collections=[['law','Law Enforcement','line-images/law-enforcement.jpg','Honor the commitment. Carry the legacy.','#1769AA'],['doc','Department of Corrections','line-images/corrections.jpg','Strength behind the walls. Honor beyond them.','#D7D9DC'],['first','First Responder','assets/first-responders/collection-group.jpg','Fire & Rescue · EMS / Paramedics · Dispatch · Water Rescue','#F47721'],['gym','Gym Attire','line-images/athletics.jpg','Built with purpose. Earned with every rep.','#F47721'],['memorial','Memorial','line-images/memorial.jpg','In memory of Andrew John Faught. A legacy that lives on.','#1769AA']];
 const link=k=>k==='first'?url('assets/first-responders/index.html'):url('index.html?collection='+k);
 const old=document.querySelector('body>header');if(old)old.classList.add('previous-header');
-const chrome=document.createElement('div');chrome.className='aj-chrome';chrome.innerHTML=`<header class="aj-masthead"><img class="aj-drew uniform" src="${url('assets/drew-left-uniform-crop.jpg')}" alt="Andrew John Faught — Illinois Department of Corrections uniform"><a class="aj-wordmark" href="${url('index.html')}" aria-label="AJ Legacy Apparel homepage"><img src="${url('assets/logo.png')}" alt="AJ mountain shield"><div><strong>AJ LEGACY</strong><span>APPAREL</span><small class="aj-motto">PROTECT <i>·</i> <b>HONOR</b> <i>·</i> INSPIRE</small><em>In Memory of Andrew John Faught</em></div></a><img class="aj-drew civilian" src="${url('assets/drew-civilian-header.jpg')}" alt="Drew — approved civilian photograph"></header><nav class="aj-navigation" aria-label="Main navigation"><a href="${url('index.html')}#memorial">Our Story</a><a href="${url('index.html')}#collections">Collections</a><a href="${url('index.html?collection=limited')}">Limited Edition</a><a href="${url('index.html')}#customization-options">Customization</a><a href="${url('index.html')}#giving">Giving Back</a><span class="aj-prelaunch">COMING SOON · CHECKOUT DISABLED</span></nav><section class="aj-collection-strip" aria-label="Apparel collections">${collections.map(([k,n,img])=>`<a href="${link(k)}" data-collection="${k}"><img src="${url(img)}" alt="${n} approved group merchandise"><strong>${n}<small>COLLECTION</small></strong></a>`).join('')}</section><section class="aj-collection-banner" aria-label="Selected collection"><div><span>APPAREL WITH PURPOSE</span><h1></h1><p></p></div><img alt=""></section>`;
+const chrome=document.createElement('div');chrome.className='aj-chrome';chrome.innerHTML=`<header class="aj-masthead"><img class="aj-drew uniform" src="${url('assets/drew-left-uniform-crop.jpg')}" alt="Andrew John Faught — Illinois Department of Corrections uniform"><a class="aj-wordmark" href="${url('index.html')}" aria-label="AJ Legacy Apparel homepage"><img src="${url('assets/logo.png')}" alt="AJ mountain shield"><div><strong>AJ LEGACY</strong><span>APPAREL</span><small class="aj-motto">PROTECT <i>·</i> <b>HONOR</b> <i>·</i> INSPIRE</small><em>In Memory of Andrew John Faught</em></div></a><img class="aj-drew civilian" src="${url('assets/drew-civilian-header.jpg')}" alt="Drew — approved civilian photograph"></header><nav class="aj-navigation" aria-label="Main navigation"><a href="${url('index.html')}#memorial">Our Story</a><a href="${url('index.html')}#collection-navigation">Collections</a><a href="${url('index.html?collection=limited')}">Limited Edition</a><a href="${url('index.html')}#customization-options">Customization</a><a href="${url('index.html')}#giving">Giving Back</a><span class="aj-prelaunch">COMING SOON · CHECKOUT DISABLED</span></nav><section class="aj-collection-strip" aria-label="Apparel collections">${collections.map(([k,n,img])=>`<a href="${link(k)}" data-collection="${k}"><img src="${url(img)}" alt="${n} approved group merchandise"><strong>${n}<small>COLLECTION</small></strong></a>`).join('')}</section><section class="aj-collection-banner" aria-label="Selected collection"><div><span>APPAREL WITH PURPOSE</span><h1></h1><p></p></div><img alt=""></section>`;
 document.body.prepend(chrome);
 chrome.querySelector('.aj-collection-strip').id='collection-navigation';
 document.querySelectorAll('a[href]').forEach(anchor=>{if(anchor.hash==='#collections')anchor.hash='collection-navigation'});
+// Restore section navigation after the legacy renderer resets the scroll position.
+const sectionIds=new Set(['memorial','collection-navigation','customization-options','giving']);
+function scrollToSection(){
+ const id=location.hash.slice(1)==='collections'?'collection-navigation':location.hash.slice(1);
+ if(!sectionIds.has(id))return;
+ const target=document.getElementById(id);if(!target)return;
+ target.scrollIntoView({block:'start',behavior:'instant'});
+}
+chrome.querySelector('.aj-navigation').addEventListener('click',event=>{
+ const anchor=event.target.closest('a');if(!anchor)return;
+ const destination=new URL(anchor.href);
+ if(destination.pathname===location.pathname&&destination.search===location.search&&sectionIds.has(destination.hash.slice(1))){
+  event.preventDefault();history.pushState(null,'',destination.href);scrollToSection();
+ }
+});
+window.addEventListener('hashchange',scrollToSection);
+window.addEventListener('load',scrollToSection);
 const banner=chrome.querySelector('.aj-collection-banner');
 function setCollection(k){const c=collections.find(c=>c[0]===k)||(k==='limited'?['limited','Limited Edition','assets/events/legacy-strength-2027.png','Legacy of Strength · February 20, 2027','#1769AA']:null);banner.hidden=!c;if(!c)return;banner.style.setProperty('--collection-accent',c[4]);banner.querySelector('h1').textContent=c[1]+' Collection';banner.querySelector('p').textContent=c[3];banner.querySelector('img').src=url(c[2]);banner.querySelector('img').alt=c[1]+' merchandise';chrome.querySelectorAll('[data-collection]').forEach(a=>{a.classList.toggle('selected',a.dataset.collection===k);if(a.dataset.collection===k)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});}
 function disabledCheckout(parent){if(parent.querySelector('.aj-checkout'))return;const box=document.createElement('div');box.className='aj-checkout';box.innerHTML='<p>COMING SOON</p><button type="button" disabled>Checkout unavailable during prelaunch</button><small>Family & supplier review · No orders or payments</small>';parent.append(box)}
@@ -76,4 +93,5 @@ if(window.AJStore){
 
  const form=document.querySelector('.form')||document.querySelector('.customizer');if(form&&!document.querySelector('.aj-checkout'))disabledCheckout(form);
 }
+requestAnimationFrame(scrollToSection);
 })();
