@@ -63,3 +63,43 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
   mask-image:linear-gradient(to bottom,#000 0%,#000 69%,transparent 84%)!important;
  }
 }
+
+/* Keep Drew at the outer edges, with both faces aligned near the top. */
+.aj-masthead,.aj-legacy-portrait-header{
+ position:relative;
+ height:auto;
+ aspect-ratio:3/1;
+ min-height:130px;
+ grid-template-columns:minmax(0,1fr);
+}
+.aj-masthead .aj-wordmark,.aj-legacy-portrait-header>.brand,.aj-legacy-portrait-header>.logo{
+ grid-column:1;
+ width:38%;
+ justify-self:center;
+ z-index:1;
+}
+.aj-masthead .aj-drew,.aj-legacy-portrait-header>.aj-drew{
+ position:absolute;
+ top:5.5%;
+ height:auto;
+ max-height:none;
+ max-width:none;
+ object-fit:contain;
+}
+.aj-masthead .uniform,.aj-legacy-portrait-header>.uniform{
+ left:0;
+ width:31.5%;
+}
+.aj-masthead .civilian,.aj-legacy-portrait-header>.civilian{
+ right:-2%;
+ width:34%;
+}
+@media(max-width:760px){
+ .aj-masthead .aj-wordmark,.aj-legacy-portrait-header>.brand,.aj-legacy-portrait-header>.logo{
+  width:42%;
+ }
+ .aj-masthead .aj-drew,.aj-legacy-portrait-header>.aj-drew{
+  top:auto;
+  bottom:0;
+ }
+}
