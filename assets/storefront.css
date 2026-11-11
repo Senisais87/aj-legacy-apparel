@@ -37,10 +37,38 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
 /* Individual presentations use garment-only proofs. */
 .modelgrid{display:none!important}
 
-/* Single authoritative memorial-header layout: portraits occupy equal side zones. */
-.aj-masthead{position:relative!important;display:grid!important;grid-template-columns:1fr!important;aspect-ratio:3/1!important;height:auto!important;min-height:130px!important;overflow:hidden!important}
-.aj-masthead .aj-wordmark{position:relative!important;grid-column:1!important;justify-self:center!important;width:42%!important;z-index:3!important;background:radial-gradient(ellipse,#08090bef,transparent 78%)!important}
-.aj-masthead .aj-drew{position:absolute!important;top:0!important;bottom:0!important;height:100%!important;width:35%!important;max-width:none!important;max-height:none!important;object-fit:cover!important;transform:none!important;border:0!important}
-.aj-masthead .uniform{left:0!important;right:auto!important;object-position:50% 26%!important;transform:scale(1.12)!important;transform-origin:0% 50%!important;clip-path:inset(0 0 0 0)!important;-webkit-mask-image:linear-gradient(to right,#000 0%,#000 76%,transparent 100%)!important;mask-image:linear-gradient(to right,#000 0%,#000 76%,transparent 100%)!important}
-.aj-masthead .civilian{right:0!important;left:auto!important;object-position:50% 25%!important;clip-path:inset(0 0 0 0)!important;-webkit-mask-image:linear-gradient(to left,#000 0%,#000 72%,transparent 100%),linear-gradient(to bottom,#000 0%,#000 69%,transparent 84%)!important;mask-image:linear-gradient(to left,#000 0%,#000 72%,transparent 100%),linear-gradient(to bottom,#000 0%,#000 69%,transparent 84%)!important;-webkit-mask-composite:source-in!important;mask-composite:intersect!important}
-@media(max-width:760px){.aj-masthead{height:clamp(125px,38vw,285px)!important;aspect-ratio:auto!important}.aj-masthead .aj-wordmark{width:43%!important}.aj-masthead .aj-drew{width:36%!important}.aj-masthead .uniform{transform:scale(1.12)!important}}
+/* Approved memorial banner: balanced original photographs, centered untouched branding. */
+.aj-masthead{
+ position:relative!important;display:grid!important;grid-template-columns:1fr!important;
+ height:auto!important;aspect-ratio:3/1!important;min-height:130px!important;overflow:hidden!important
+}
+.aj-masthead .aj-wordmark{
+ position:relative!important;grid-column:1!important;justify-self:center!important;
+ width:42%!important;z-index:3!important;
+ background:radial-gradient(ellipse,#08090bef,transparent 78%)!important
+}
+.aj-masthead .aj-drew{
+ position:absolute!important;top:0!important;bottom:0!important;height:100%!important;
+ max-height:none!important;max-width:none!important;border:0!important;
+ transform:none!important;clip-path:none!important
+}
+.aj-masthead .uniform{
+ left:0!important;right:auto!important;width:40%!important;
+ object-fit:contain!important;object-position:left bottom!important;
+ mix-blend-mode:multiply!important;
+ -webkit-mask-image:linear-gradient(to right,#000 0%,#000 70%,transparent 96%)!important;
+ mask-image:linear-gradient(to right,#000 0%,#000 70%,transparent 96%)!important
+}
+.aj-masthead .civilian{
+ right:0!important;left:auto!important;width:36%!important;
+ object-fit:cover!important;object-position:center 25%!important;
+ -webkit-mask-image:linear-gradient(to left,#000 0%,#000 72%,transparent 100%),linear-gradient(to bottom,#000 0%,#000 70%,transparent 82%)!important;
+ mask-image:linear-gradient(to left,#000 0%,#000 72%,transparent 100%),linear-gradient(to bottom,#000 0%,#000 70%,transparent 82%)!important;
+ -webkit-mask-composite:source-in!important;mask-composite:intersect!important
+}
+@media(max-width:760px){
+ .aj-masthead{height:clamp(125px,38vw,285px)!important;aspect-ratio:auto!important}
+ .aj-masthead .aj-wordmark{width:43%!important}
+ .aj-masthead .uniform{width:40%!important}
+ .aj-masthead .civilian{width:36%!important}
+}
