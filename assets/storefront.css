@@ -124,3 +124,9 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
 .aj-masthead .uniform{left:0!important}
 .aj-masthead .civilian{right:-2%!important}
 @media(max-width:760px){.aj-masthead .uniform,.aj-masthead .civilian{width:35.5%!important;top:5%!important}.aj-masthead .uniform{left:-1%!important}.aj-masthead .civilian{right:-2.5%!important}}
+
+/* Portrait visual balance: enlarge Drew within the left zone, not the header grid. */
+.aj-masthead .uniform{transform:scale(1.28)!important;transform-origin:10% 18%!important;clip-path:inset(0 18% 0 0)!important}
+/* Conceal the silver artwork at the foot of the existing right portrait. */
+.aj-masthead .civilian{-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 74%,transparent 91%)!important;mask-image:linear-gradient(to bottom,#000 0%,#000 74%,transparent 91%)!important}
+@media(max-width:760px){.aj-masthead .uniform{transform:scale(1.28)!important;transform-origin:8% 12%!important;clip-path:inset(0 18% 0 0)!important}.aj-masthead .civilian{-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 72%,transparent 87%)!important;mask-image:linear-gradient(to bottom,#000 0%,#000 72%,transparent 87%)!important}}
