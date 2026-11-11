@@ -72,3 +72,27 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
  .aj-masthead .uniform{width:40%!important}
  .aj-masthead .civilian{width:36%!important}
 }
+
+
+/* 2026-11-11: matched memorial portraits; equal-size image regions and clean lower edge. */
+.aj-masthead .uniform,.aj-masthead .civilian{
+  width:38%!important;
+  height:100%!important;
+  top:0!important;
+  bottom:0!important;
+  object-fit:cover!important;
+  mix-blend-mode:normal!important;
+}
+.aj-masthead .uniform{
+  object-position:50% 18%!important;
+  -webkit-mask-image:linear-gradient(to right,#000 0%,#000 74%,transparent 100%)!important;
+  mask-image:linear-gradient(to right,#000 0%,#000 74%,transparent 100%)!important;
+}
+.aj-masthead .civilian{
+  object-position:50% 20%!important;
+  -webkit-mask-image:linear-gradient(to left,#000 0%,#000 74%,transparent 100%)!important;
+  mask-image:linear-gradient(to left,#000 0%,#000 74%,transparent 100%)!important;
+}
+@media(max-width:760px){
+  .aj-masthead .uniform,.aj-masthead .civilian{width:38%!important}
+}
