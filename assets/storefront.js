@@ -1,6 +1,12 @@
 /* Shared presentation layer. Existing catalog data and proof renderers remain authoritative. */
 (()=>{
 'use strict';
+/* Refresh shared header stylesheet when a new storefront build is published. */
+const cssVersion='0aa78d1-header-v2';
+for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
+ try{const u=new URL(link.href,document.baseURI);if(u.pathname.endsWith('/assets/storefront.css')){u.searchParams.set('v',cssVersion);if(link.href!==u.href)link.href=u.href;}}catch(_e){}
+}
+
 const root=new URL('../',document.currentScript.src),url=p=>new URL(p,root).href;
 const collections=[['law','Law Enforcement','line-images/law-enforcement.jpg','Honor the commitment. Carry the legacy.','#1769AA'],['doc','Department of Corrections','line-images/corrections.jpg','Strength behind the walls. Honor beyond them.','#D7D9DC'],['first','First Responder','assets/first-responders/collection-group.jpg','Fire & Rescue · EMS / Paramedics · Dispatch · Water Rescue','#F47721'],['gym','Gym Attire','line-images/athletics.jpg','Built with purpose. Earned with every rep.','#F47721'],['memorial','Memorial','line-images/memorial.jpg','In memory of Andrew John Faught. A legacy that lives on.','#1769AA']];
 const link=k=>k==='first'?url('assets/first-responders/index.html'):url('index.html?collection='+k);
