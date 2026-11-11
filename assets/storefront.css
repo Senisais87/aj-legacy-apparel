@@ -98,8 +98,23 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
  .aj-masthead .aj-wordmark,.aj-legacy-portrait-header>.brand,.aj-legacy-portrait-header>.logo{
   width:42%;
  }
+ .aj-masthead,.aj-legacy-portrait-header{
+  height:clamp(125px,38vw,285px);
+  min-height:0;
+  background-position:center 27%!important;
+ }
  .aj-masthead .aj-drew,.aj-legacy-portrait-header>.aj-drew{
-  top:auto;
-  bottom:0;
+  top:5%;
+  bottom:auto;
+ }
+ .aj-masthead .uniform,.aj-legacy-portrait-header>.uniform{
+  width:34%;
+  left:-1%;
+ }
+ .aj-masthead .civilian,.aj-legacy-portrait-header>.civilian{
+  width:35.5%;
+  right:-2.5%;
+  -webkit-mask-image:linear-gradient(#000 0 87%,transparent 100%)!important;
+  mask-image:linear-gradient(#000 0 87%,transparent 100%)!important;
  }
 }

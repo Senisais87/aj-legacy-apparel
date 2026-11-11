@@ -51,9 +51,24 @@
  .aj-masthead .aj-wordmark,.aj-legacy-portrait-header>.brand,.aj-legacy-portrait-header>.logo{
   width:42%;
  }
+ .aj-masthead,.aj-legacy-portrait-header{
+  height:clamp(125px,38vw,285px);
+  min-height:0;
+  background-position:center 27%!important;
+ }
  .aj-masthead .aj-drew,.aj-legacy-portrait-header>.aj-drew{
-  top:auto;
-  bottom:0;
+  top:5%;
+  bottom:auto;
+ }
+ .aj-masthead .uniform,.aj-legacy-portrait-header>.uniform{
+  width:34%;
+  left:-1%;
+ }
+ .aj-masthead .civilian,.aj-legacy-portrait-header>.civilian{
+  width:35.5%;
+  right:-2.5%;
+  -webkit-mask-image:linear-gradient(#000 0 87%,transparent 100%)!important;
+  mask-image:linear-gradient(#000 0 87%,transparent 100%)!important;
  }
 }
 </style></head><script>window.AJ_COLLECTIONS=[["law","Law Enforcement","line-images/law-enforcement.jpg"],["doc","Department of Corrections","line-images/corrections.jpg"],["first","First Responder","assets/models/customizer-models.png"],["gym","Gym Attire","assets/concepts/gym-collection-board.webp"],["memorial","Memorial Competition","assets/concepts/memorial-collection-board.webp"],["limited","Limited Edition","assets/models/headwear-models.png"]];window.AJ_PRODUCTS={"law":[["Law Enforcement Collection","line-images/law-enforcement.jpg"],["Peacemakers","assets/models/peacemakers.png"],["Law Enforcement Scripture","assets/concepts/law-scripture.webp"]],"doc":[["DOC Collection","line-images/corrections.jpg"],["Corrections Scripture","assets/concepts/doc-scripture.webp"],["TRT Collection","assets/trt.png"]],"first":[["First Responder Model Concepts","assets/models/customizer-models.png"],["Fire Rescue Crest","assets/models/customizer-models.png"],["EMS and Dispatch Concepts","assets/models/customizer-models.png"]],"gym":[["Earned Not Given","assets/models/earned-not-given.png"],["Legacy Veins","assets/concepts/gym-legacy-veins.webp"],["Built To Rise","assets/concepts/gym-built-to-rise.webp"],["Strength Hoodie","assets/concepts/gym-strength-hoodie.webp"]],"memorial":[["Memorial Collection","assets/concepts/memorial-collection-board.webp"],["Memorial Lift","assets/concepts/memorial-lift.webp"],["Memorial Love","assets/concepts/memorial-love.webp"]],"limited":[["AJ Headwear","assets/models/headwear-models.png"],["Custom Models","assets/models/customizer-models.png"]]};</script><body><header class="aj-legacy-portrait-header"><img class="aj-drew uniform" src="assets/drew-uniform-approved.jpg" alt="Drew in IDOC uniform"><div class="brand"><h1 class="aj-preview-logo"><img src="assets/logo.png" alt="AJ"><b>LEGACY</b></h1><small>APPAREL</small><div class="aj-motto">PROTECT <i aria-hidden="true">·</i> <b>HONOR</b> <i aria-hidden="true">·</i> INSPIRE</div><p>In Memory of Andrew John Faught</p></div><img class="aj-drew civilian" src="assets/drew-civilian-approved.jpg" alt="Drew in casual clothing"></header><nav><a href="home-preview.html">Home</a><a href="home-preview.html#story">Our Story</a><a href="home-preview.html#collections">Collections</a><a href="home-preview.html#giving">Giving Back</a><a href="home-preview.html#steps">How It Works</a><a href="k9-collection.html">K9 Breeds</a><a href="service-designs.html">First Responder &amp; K9 Designs</a><a href="catalog.html">Original Catalog</a></nav><main><a href="home-preview.html#collections" class="orange">← All collections</a><h2 id="heading">Choose a design</h2><p class="muted">Select an item to open its own customization page. Existing artwork is shown where available; model concepts are not supplier print proofs.</p><div id="items" class="grid"></div></main><script>const key=new URLSearchParams(location.search).get("line")||"law";const c=AJ_COLLECTIONS.find(x=>x[0]===key)||AJ_COLLECTIONS[0];if(key==="first"){location.replace("service-designs.html");}document.getElementById("heading").textContent=c[1]+" — Choose a design";document.getElementById("items").innerHTML=(AJ_PRODUCTS[key]||[]).map((p,i)=>'<a class="tile" href="customize-preview.html?line='+encodeURIComponent(key)+'&item='+i+'"><img src="'+p[1]+'" alt="'+p[0]+'"><strong>'+p[0]+'</strong></a>').join("");</script><footer>AJ Legacy Apparel · In memory of Andrew John Faught · Prelaunch only · Checkout disabled</footer><script src="./assets/all-preview-models.js" defer></script></body></html>
