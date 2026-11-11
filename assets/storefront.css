@@ -146,3 +146,8 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
  filter:brightness(1.32) contrast(1.04)!important;
  clip-path:polygon(0 0,32% 0,32% 100%,0 100%)!important;
 }
+
+
+/* Direct image header: disable all legacy pseudo-element image overlays. */
+.aj-masthead::before,.aj-masthead::after{content:none!important;display:none!important}
+.aj-masthead>img:not(.aj-drew){display:block!important;width:100%!important;height:auto!important;max-width:100%!important;position:relative!important;z-index:4!important}
