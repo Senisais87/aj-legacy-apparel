@@ -132,3 +132,17 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
  .aj-masthead{height:auto!important;min-height:0!important;aspect-ratio:unset!important}
  .aj-masthead::before{padding-top:33.333333%!important}
 }
+
+
+/* Brighten only the left portrait in the approved flattened banner. */
+.aj-masthead::after{
+ content:""!important;
+ display:block!important;
+ position:absolute!important;
+ inset:0!important;
+ z-index:1!important;
+ pointer-events:none!important;
+ background:url('aj_legacy_approved_header_web.jpg') center center/100% 100% no-repeat!important;
+ filter:brightness(1.32) contrast(1.04)!important;
+ clip-path:polygon(0 0,32% 0,32% 100%,0 100%)!important;
+}
