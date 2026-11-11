@@ -56,6 +56,27 @@ if(window.AJStore){
    history.replaceState(null,'',url('index.html?'+params.toString()));
   }else{
    grid.addEventListener('click',event=>{const tile=event.target.closest('.product-tile');if(!tile)return;event.stopImmediatePropagation();const index=[...grid.children].indexOf(tile);location.assign(collectionURL(key,sub)+'&product='+index)},true);
+   if(actual==='gym'){
+    const selected=[
+     ['gym-01.jpg','Sun Warrior — Bigger Than the Sun'],
+     ['gym-02.jpg','Eclipse Deadlift — Bigger Than the Sun'],
+     ['gym-03.jpg','Cane Corso — Bigger Than the Sun'],
+     ['gym-04.jpg','Pit Bull — Built for Strength'],
+     ['gym-05.jpg','Cane Corso — Discipline Builds Beasts'],
+     ['gym-06.jpg','Pit Bull — Loyalty Builds Strength'],
+     ['gym-07-quote-proof.svg','Mind Over Body — Andrew Faught'],
+    ];
+    const gallery=document.createElement('section');
+    gallery.setAttribute('aria-labelledby','gym-selected-title');
+    gallery.innerHTML=`<h2 id="gym-selected-title">Selected Gym Designs</h2>
+     <p><a href="${url('gym-collection.html')}">View the black T-shirt mockups</a></p>
+     <div class="product-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px">${selected.map(([file,title])=>`
+      <article class="product-tile">
+       <img src="${url('assets/gym-selected/'+file)}" alt="${title}" style="object-fit:contain;width:100%">
+       <strong>${title}</strong>
+      </article>`).join('')}</div>`;
+    grid.before(gallery);
+   }
    if(actual==='law'||actual==='doc'){
     const groups=document.createElement('nav');groups.className='aj-subline-links';groups.setAttribute('aria-label','Choose a sub-line');
     const options=actual==='law'?[['all','All Law Enforcement designs'],['k9','K9 / Canine']]:[['all','All DOC designs'],['trt','Tactical Response Team (TRT)']];
