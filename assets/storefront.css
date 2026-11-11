@@ -118,3 +118,7 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
   mask-image:linear-gradient(#000 0 87%,transparent 100%)!important;
  }
 }
+
+/* Enlarge the existing approved IDOC portrait on the left; keep the center wordmark and right portrait unchanged. */
+.aj-masthead .uniform{width:39%!important;left:-2%!important;top:-4%!important;object-fit:contain!important;height:auto!important;max-height:none!important}
+@media(max-width:760px){.aj-masthead .uniform{width:40%!important;left:-2%!important;top:-5%!important;height:auto!important;max-height:none!important}}
