@@ -36,3 +36,22 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
 
 /* Individual presentations use garment-only proofs. */
 .modelgrid{display:none!important}
+
+/* Trace the approved portraits in the header so the shared backdrop shows through. */
+.aj-masthead .aj-drew,.aj-legacy-portrait-header>.aj-drew{
+ height:100%;width:auto;max-width:100%;min-height:0;object-fit:fill;
+ align-self:end;justify-self:center;mask-image:linear-gradient(#000 0 87%,transparent 100%);
+}
+.aj-masthead .uniform,.aj-legacy-portrait-header>.uniform{
+ aspect-ratio:925/680;clip-path:polygon(4.11% 96.91%,3.35% 90.59%,4.22% 82.50%,6.38% 75.15%,8.65% 68.09%,11.35% 60.74%,14.59% 54.71%,18.49% 50.74%,23.57% 47.50%,25.73% 44.85%,29.30% 44.41%,31.68% 41.47%,32.86% 38.68%,36.22% 36.76%,38.92% 36.18%,39.68% 31.18%,39.46% 24.41%,39.46% 17.65%,40.00% 13.09%,42.05% 7.94%,44.97% 4.26%,48.32% 2.21%,51.89% 1.18%,54.70% 1.91%,57.41% 4.12%,59.78% 7.50%,60.86% 11.18%,61.41% 16.03%,62.27% 18.97%,62.05% 24.71%,60.86% 30.29%,59.89% 35.29%,62.16% 37.21%,65.62% 39.71%,68.00% 43.24%,70.27% 43.97%,74.38% 44.85%,78.27% 48.09%,81.30% 52.21%,84.65% 57.94%,88.22% 64.85%,91.57% 71.18%,94.81% 77.65%,96.97% 84.85%,97.95% 92.06%,97.08% 96.91%);
+}
+.aj-masthead .civilian,.aj-legacy-portrait-header>.civilian{
+ aspect-ratio:452/550;clip-path:polygon(0.00% 99.27%,0.00% 70.36%,3.10% 64.55%,9.29% 60.00%,16.81% 56.18%,23.67% 52.55%,28.98% 50.36%,29.65% 46.18%,25.66% 42.91%,23.01% 38.18%,21.68% 31.64%,22.12% 24.73%,21.68% 18.73%,22.12% 12.91%,25.22% 8.73%,29.65% 5.09%,36.73% 2.73%,42.70% 2.55%,48.45% 4.18%,54.42% 6.18%,59.07% 10.36%,61.06% 14.91%,61.50% 20.91%,62.17% 26.18%,66.15% 29.45%,69.25% 33.27%,67.70% 34.55%,59.51% 34.55%,56.42% 40.00%,61.28% 42.36%,70.35% 44.18%,79.20% 47.64%,86.50% 51.82%,92.48% 56.55%,96.90% 62.55%,99.34% 69.64%,100.00% 78.55%,100.00% 100.00%);
+ mask-image:linear-gradient(#000 0 84%,transparent 100%);
+}
+.aj-motto b{font-size:1.35em}
+@media(max-width:760px){
+ .aj-masthead .aj-drew,.aj-legacy-portrait-header>.aj-drew{
+  width:100%;height:auto;max-height:100%;
+ }
+}
