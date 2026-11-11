@@ -113,3 +113,22 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
   -webkit-mask-composite:source-in!important;
   mask-composite:intersect!important;
 }
+
+
+/* Approved single-image memorial banner; no separate portrait layers. */
+.aj-masthead{
+  display:block!important;
+  position:relative!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:unset!important;
+  padding:0!important;
+  background:#08090b url('aj_legacy_approved_header_web.jpg') center center/100% 100% no-repeat!important;
+}
+.aj-masthead::before{content:"";display:block!important;padding-top:33.333333%!important}
+.aj-masthead>.aj-drew,.aj-masthead>.aj-wordmark{display:none!important}
+@media(max-width:760px){
+ .aj-masthead{height:auto!important;min-height:0!important;aspect-ratio:unset!important}
+ .aj-masthead::before{padding-top:33.333333%!important}
+}
