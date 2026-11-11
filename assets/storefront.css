@@ -119,6 +119,8 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
  }
 }
 
-/* Enlarge the existing approved IDOC portrait on the left; keep the center wordmark and right portrait unchanged. */
-.aj-masthead .uniform{width:39%!important;left:-2%!important;top:-4%!important;object-fit:contain!important;height:auto!important;max-height:none!important}
-@media(max-width:760px){.aj-masthead .uniform{width:40%!important;left:-2%!important;top:-5%!important;height:auto!important;max-height:none!important}}
+/* Keep both approved memorial portraits the same display width on all screens. */
+.aj-masthead .uniform,.aj-masthead .civilian{width:34%!important;top:5.5%!important}
+.aj-masthead .uniform{left:0!important}
+.aj-masthead .civilian{right:-2%!important}
+@media(max-width:760px){.aj-masthead .uniform,.aj-masthead .civilian{width:35.5%!important;top:5%!important}.aj-masthead .uniform{left:-1%!important}.aj-masthead .civilian{right:-2.5%!important}}
