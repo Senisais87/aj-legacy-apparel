@@ -138,6 +138,19 @@ lines.limited.unshift({"title":"2027 Legacy of Strength Challenge Event Tee","im
 Object.assign(assets,{"concept-gym-undefeated": "assets/concepts/gym-undefeated.webp", "concept-gym-built-to-rise": "assets/concepts/gym-built-to-rise.webp", "concept-gym-legacy-veins": "assets/concepts/gym-legacy-veins.webp"});
 familyConcepts.push(...[{"line": "gym", "key": "gym-undefeated", "title": "Undefeated Training Tee", "verse": "I was not delivered into this world in defeat nor does failure flow through my veins", "detail": "Blue and silver mountains and barbell on a black performance tee.", "scripture": "", "flag": "none", "record": {"title": "Undefeated Training Tee", "img": "concept-gym-undefeated", "kind": "shirt", "flag": "none", "concept": true, "quoteDesign": true, "garment": "Performance tee", "verse": "I was not delivered into this world in defeat nor does failure flow through my veins", "detail": "Blue and silver mountains and barbell on a black performance tee.", "scripture": ""}}, {"line": "gym", "key": "gym-built-to-rise", "title": "Built to Rise Training Tank", "verse": "I was not delivered into this world in defeat nor does failure flow through my veins", "detail": "Orange and silver mountain sunrise on a black training tank.", "scripture": "", "flag": "none", "record": {"title": "Built to Rise Training Tank", "img": "concept-gym-built-to-rise", "kind": "shirt", "flag": "none", "concept": true, "quoteDesign": true, "garment": "Training tank", "verse": "I was not delivered into this world in defeat nor does failure flow through my veins", "detail": "Orange and silver mountain sunrise on a black training tank.", "scripture": ""}}, {"line": "gym", "key": "gym-legacy-veins", "title": "Legacy in My Veins Hoodie", "verse": "I was not delivered into this world in defeat nor does failure flow through my veins", "detail": "Blue and silver branching vein artwork on the back of a black hoodie.", "scripture": "", "flag": "none", "record": {"title": "Legacy in My Veins Hoodie", "img": "concept-gym-legacy-veins", "kind": "shirt", "flag": "none", "concept": true, "quoteDesign": true, "garment": "Hoodie", "verse": "I was not delivered into this world in defeat nor does failure flow through my veins", "detail": "Blue and silver branching vein artwork on the back of a black hoodie.", "scripture": ""}}]);
 familyConcepts.forEach(c=>{if(c.line==='law'||c.line==='doc')lines[c.line].unshift(c.record);else lines[c.line].push(c.record)});
+// Catalog entries represent artwork families; original examples remain available as options.
+const originalServiceLines={law:[...lines.law],doc:[...lines.doc]};
+for(const line of ['law','doc']){
+ const original=originalServiceLines[line],base=original.find(p=>p.img===(line==='law'?'shirt0_0':'shirt1_0'));
+ const head=original.find(p=>p.img===(line==='law'?'hatdept0':'hatdept1'));
+ base.title=line==='law'?'Law Enforcement — Department Flag':'DOC — Department Flag';
+ base.variations=original.filter(p=>!p.concept&&p.kind!=='hat'&&!p.img.startsWith('shirt2_'));
+ head.title=(line==='law'?'Law Enforcement':'DOC')+' — Headwear';head.variations=original.filter(p=>p.kind==='hat');
+ const key='shirt2_0-'+line;assets[key]='assets/matthew-'+line+'.svg';
+ const matthew={title:(line==='law'?'Law Enforcement':'DOC / TRT')+' — Matthew 5:9',img:key,kind:'shirt',flag:line==='law'?'blue':'gray',scripture:'Matthew 5:9',detail:'Blessed are the peacemakers: for they shall be called the children of God. Approved TRT quote layout with this collection’s department front.'};
+ if(line==='doc')matthew.variations=[{...matthew,title:'DOC — Matthew 5:9'},...original.filter(p=>p.img.startsWith('shirt2_'))];
+ lines[line]=[base,matthew,...original.filter(p=>p.concept),head];
+}
 const flow=document.getElementById('shopping-flow'),grid=document.getElementById('product-grid'),choose=flow.querySelector('.choose-product'),custom=flow.querySelector('.customize-screen');
 let current='law', selected=null;
 const collections=document.getElementById('collections');
@@ -287,6 +300,8 @@ function garmentProfile(item){
 // Full-colour photographic garment proofs share the selected artwork and form values.
 let activeGraphicPreview=null;
 function openItem(item,index){
+ const family=lines[current][index];
+
  let studioLink=document.getElementById('interactive-studio-link');
  if(!studioLink){studioLink=document.createElement('a');studioLink.id='interactive-studio-link';studioLink.className='btn';studioLink.style.cssText='display:inline-block;margin:12px 0';studioLink.textContent='Open interactive placement studio ↗';document.querySelector('.customize-screen')?.prepend(studioLink)}
  if(studioLink)studioLink.href='customizer.html?line='+encodeURIComponent(current)+'&design='+encodeURIComponent(item.img)+'&garment='+(item.kind==='hat'?'Headwear':item.img==='style1'?'Lower':'Upper');
@@ -296,6 +311,15 @@ function openItem(item,index){
  const oldReference=document.getElementById('artwork-reference');if(oldReference){oldReference.before(document.getElementById('selected-product-image'));oldReference.remove()}
  let form=document.getElementById('custom-form');const freshForm=form.cloneNode(false);form.replaceWith(freshForm);form=freshForm;
  openDesignItem(item,index);
+ if(family?.variations?.length){
+ const label=document.createElement('label');label.textContent='Department / garment example';
+ const choices=document.createElement('select');choices.id='design-variation';
+ family.variations.forEach((variant,i)=>choices.add(new Option(variant.title,String(i))));
+ choices.value=String(Math.max(0,family.variations.findIndex(v=>v.img===item.img)));
+ choices.onchange=()=>{openItem(family.variations[Number(choices.value)],index);history.replaceState(null,'',location.pathname+location.search)};
+ label.append(choices);form.prepend(label);
+ }
+
  const special=item.kind==='hat'?'headwear':item.img==='style1'?'joggers':null;
  const wrap=document.getElementById('selected-product-image'),gym=current==='gym'&&(item.concept||item.quoteDesign),service=current==='law'||current==='doc';
  const group=document.createElement('div');group.className='garment-choice';
@@ -526,4 +550,4 @@ window.addEventListener('popstate',e=>{if(e.state?.page==='products'){current=e.
 window.AJStore={lines,names,openLine,openItem,showPage,get current(){return current}};
 showPage('lines');
 })();
-</script><script src="assets/storefront.js?v=20261110-motto-story"></script></body></html>
+</script><script src="assets/storefront.js?v=20261110-catalog-families"></script></body></html>

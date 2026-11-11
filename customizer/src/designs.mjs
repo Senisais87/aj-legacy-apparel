@@ -232,5 +232,7 @@ export const designs=[
       "Unit"
     ]
   }
-];
+,
+{"id": "shirt2_0-law", "name": "Law Enforcement \u2014 Matthew 5:9", "line": "Service", "asset": "assets/matthew-law.svg", "referenceOnly": true, "capabilities": ["Name", "Rank", "Unit", "State", "Abbreviation", "ThinLine"]},
+{"id": "shirt2_0-doc", "name": "DOC / TRT \u2014 Matthew 5:9", "line": "Service", "asset": "assets/matthew-doc.svg", "referenceOnly": true, "capabilities": ["Name", "Rank", "Unit", "State", "Abbreviation", "ThinLine"]}];
 export const designById=id=>designs.find(d=>d.id===id)||designs[0];

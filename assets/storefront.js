@@ -17,7 +17,7 @@ if(window.AJStore){
  document.getElementById('back-lines').textContent='← Back to collections';
  const store=window.AJStore,custom=document.querySelector('.customize-screen'),grid=document.getElementById('product-grid');
  const params=new URLSearchParams(location.search),key=params.get('collection')||params.get('line'),actual=key==='memorial'?'limited':key;
- const sub=params.get('subline');
+ const sub=params.get('subline')||params.get('sub');
  const collectionURL=(k,subline)=>url('index.html?collection='+encodeURIComponent(k)+(subline?'&subline='+encodeURIComponent(subline):''));
  // Each step has its own address and a normal browser navigation.
  document.querySelectorAll('[data-open]').forEach(button=>button.addEventListener('click',event=>{event.stopImmediatePropagation();location.assign(collectionURL(button.dataset.open))},true));
