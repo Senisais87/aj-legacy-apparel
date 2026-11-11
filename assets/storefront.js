@@ -68,6 +68,27 @@ if(window.AJStore){
   const entries=store.lines[actual];
   if(params.has('product')&&Number.isInteger(Number(params.get('product')))&&entries[Number(params.get('product'))]){
    const index=Number(params.get('product'));store.openItem(entries[index],index);
+   if(actual==='gym'){
+    const garment=document.getElementById('garment-style');
+    const form=document.getElementById('custom-form');
+    if(garment){
+     garment.add(new Option('Tank Top'));
+     if(/tank/i.test(entries[index].title))garment.value='Tank Top';
+     const note=document.createElement('p');
+     note.className='note';
+     note.textContent='Tank tops are available in Men’s, Women’s and Unisex fits. The artwork preview uses the approved reference image.';
+     garment.closest('label').after(note);
+     const reviewButton=form.querySelector('#review-customizations,#quote-review');
+     reviewButton?.addEventListener('click',()=>{
+      const review=document.getElementById('finished-design');
+      if(!review||garment.value!=='Tank Top')return;
+      const fit=form.querySelector('#fit,#quote-fit')?.value;
+      const style=document.createElement('p');
+      style.textContent=[fit,'Tank Top'].filter(Boolean).join(' · ');
+      review.querySelector('h3')?.after(style);
+     });
+    }
+   }
    // The shared placement studio does not have these artwork files in its design picker.
    if(entries[index].img.startsWith('selected-gym-')){
     const studioLink=document.getElementById('interactive-studio-link');
