@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 /* Refresh shared header stylesheet when a new storefront build is published. */
-const cssVersion='single-image-consistent-v6';
+const cssVersion='legacy-header-removed-v7';
 for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
  try{const u=new URL(link.href,document.baseURI);if(u.pathname.endsWith('/assets/storefront.css')){u.searchParams.set('v',cssVersion);if(link.href!==u.href)link.href=u.href;}}catch(_e){}
 }
@@ -10,7 +10,11 @@ for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
 const root=new URL('../',document.currentScript.src),url=p=>new URL(p,root).href;
 const collections=[['law','Law Enforcement','line-images/law-enforcement.jpg','Honor the commitment. Carry the legacy.','#1769AA'],['doc','Department of Corrections','line-images/corrections.jpg','Strength behind the walls. Honor beyond them.','#D7D9DC'],['first','First Responder','assets/first-responders/collection-group.jpg','Fire & Rescue · EMS / Paramedics · Dispatch · Water Rescue','#F47721'],['gym','Gym Attire','line-images/athletics.jpg','Built with purpose. Earned with every rep.','#F47721'],['memorial','Memorial','line-images/memorial.jpg','In memory of Andrew John Faught. A legacy that lives on.','#1769AA']];
 const link=k=>k==='first'?url('assets/first-responders/index.html'):url('index.html?collection='+k);
-const old=document.querySelector('body>header');if(old)old.classList.add('previous-header');
+/* Remove obsolete header DOM instead of merely hiding it. */
+const old=document.querySelector('body>header');
+if(old)old.remove();
+const legacyHero=document.querySelector('main#top > section.hero');
+if(legacyHero)legacyHero.remove();
 const chrome=document.createElement('div');chrome.className='aj-chrome';chrome.innerHTML=`<header class="aj-masthead" style="display:block!important;position:relative!important;width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:auto!important;background:none!important;padding:0!important;overflow:hidden!important"><img src="${url('assets/aj_legacy_approved_header_web.jpg')}?v=20261111same" alt="AJ Legacy Apparel memorial banner honoring Andrew John Faught" style="display:block!important;width:100%!important;height:auto!important;max-width:100%!important;object-fit:contain!important;position:relative!important;z-index:4!important;filter:none!important;mix-blend-mode:normal!important;mask-image:none!important;-webkit-mask-image:none!important"></header><nav class="aj-navigation" aria-label="Main navigation"><a href="${url('index.html')}#memorial">Our Story</a><a href="${url('index.html')}#collection-navigation">Collections</a><a href="${url('index.html?collection=limited')}">Limited Edition</a><a href="${url('index.html')}#customization-options">Customization</a><a href="${url('index.html')}#giving">Giving Back</a><a href="${url('contact.html')}">Contact Us</a><span class="aj-prelaunch">COMING SOON · CHECKOUT DISABLED</span></nav><section class="aj-collection-strip" aria-label="Apparel collections">${collections.map(([k,n,img])=>`<a href="${link(k)}" data-collection="${k}"><img src="${url(img)}" alt="${n} approved group merchandise"><strong>${n}<small>COLLECTION</small></strong></a>`).join('')}</section><section class="aj-collection-banner" aria-label="Selected collection"><div><span>APPAREL WITH PURPOSE</span><h1></h1><p></p></div><img alt=""></section>`;
 document.body.prepend(chrome);
 chrome.querySelector('.aj-collection-strip').id='collection-navigation';
