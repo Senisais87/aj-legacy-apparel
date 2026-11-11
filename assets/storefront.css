@@ -96,3 +96,20 @@ html{scroll-behavior:smooth}body{background:#060709!important;color:#eee}*{box-s
 @media(max-width:760px){
   .aj-masthead .uniform,.aj-masthead .civilian{width:38%!important}
 }
+
+
+/* Header correction: blend white source backdrop into the flag without hiding Drew. */
+.aj-masthead .uniform{
+  mix-blend-mode:darken!important;
+  object-fit:contain!important;
+  object-position:left center!important;
+  -webkit-mask-image:linear-gradient(to right,#000 0%,#000 78%,transparent 100%)!important;
+  mask-image:linear-gradient(to right,#000 0%,#000 78%,transparent 100%)!important;
+}
+.aj-masthead .civilian{
+  mix-blend-mode:normal!important;
+  -webkit-mask-image:linear-gradient(to left,#000 0%,#000 75%,transparent 100%),linear-gradient(to bottom,#000 0%,#000 76%,transparent 100%)!important;
+  mask-image:linear-gradient(to left,#000 0%,#000 75%,transparent 100%),linear-gradient(to bottom,#000 0%,#000 76%,transparent 100%)!important;
+  -webkit-mask-composite:source-in!important;
+  mask-composite:intersect!important;
+}
