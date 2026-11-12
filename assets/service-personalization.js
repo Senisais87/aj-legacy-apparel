@@ -34,8 +34,30 @@
   'Bottom back': [1, .50, .77, .32],
  };
  const supportedStyles = ['T-shirt', 'Hoodie'];
- function paint(context, marks, surfaces) {
-  const count = {};
+ // Coordinates are relative to each garment face. Reserve the catalog logo,
+ // the model proof's chest logo, and the fixed rear-neck logo area.
+ function logoZones(style, engine, back) {
+  if (back) return [[.43,.13,.14,.16]];
+  if (engine === 'live-garment-personalization') {
+   return [style === 'Tank Top' ? [.54,.28,.12,.14] : [.50,.19,.14,.13]];
+  }
+  const [x,y,width] = window.AJGarments.styles[style]?.logo || [.61,.32,.12];
+  return [[x-width/2-.02,y-width/2-.02,width+.04,width+.04]];
+ }
+ function clearOfLogo(rect, zones) {
+  const [x,y,w,h] = rect;
+  const gap = .012;
+  return zones.every(([lx,ly,lw,lh])=>x+w+gap<lx || x-gap>lx+lw || y+h+gap<ly || y-gap>ly+lh);
+ }
+ function logoSafeY(x, y, width, height, zones) {
+  for (let offset = 0; offset <= .13; offset += .015) {
+   const next = y+offset;
+   if (clearOfLogo([x-width/2,next-height/2,width,height],zones)) return next;
+  }
+  return null;
+ }
+ function paint(context, marks, surfaces, zones) {
+  const count = {}, previousY = {};
   for (const {label, value, placement} of marks) {
    const [side, x, y, width] = boxes[placement];
    const surface = surfaces[side];
@@ -44,9 +66,13 @@
    const row = count[placement] || 0;
    count[placement] = row + 1;
    const vertical = placement === spine;
+   const center = x + (vertical ? row * .025 : 0);
+   const start = vertical ? y : Math.max(y, (previousY[placement] ?? 0) + .027);
+   const centerY = logoSafeY(center, start, vertical ? .026 : width, vertical ? width : .026, zones[side]);
+   if (centerY === null) continue;
+   previousY[placement] = centerY;
    context.save();
-   context.translate(left + (x + (vertical ? row * .025 : 0)) * widthPx,
-    top + (y + (vertical ? 0 : row * .023)) * height);
+   context.translate(left + center * widthPx, top + centerY * height);
    if (vertical) context.rotate(Math.PI / 2);
    context.font = '700 ' + Math.max(8, Math.round(Math.min(widthPx, height) * .020)) + 'px system-ui';
    context.textAlign = 'center';
@@ -66,7 +92,10 @@
   group.className = 'aj-personalization-fields';
   const legend = document.createElement('legend');
   legend.textContent = 'Garment personalization';
-  group.append(legend);
+  const logoNote = document.createElement('p');
+  logoNote.className = 'note';
+  logoNote.textContent = 'AJ Legacy logo placement is fixed. Personalization is positioned clear of the logo.';
+  group.append(legend, logoNote);
   const fields = ['Name', 'Rank', ...(department ? ['Facility / Department'] : []), ...(badge ? ['Unit'] : []), 'EOW date'].map(label => {
    const row = document.createElement('div');
    const caption = document.createElement('label');
@@ -180,10 +209,11 @@
     }
    }
    const front = surfaces[0], back = surfaces[1];
+   const zones = [logoZones(currentStyle, engine, false), logoZones(currentStyle, engine, true)];
    const sleeve = front || back;
-   if (sleeve) paintFlag(context, sleeve, !front, currentStyle);
+   if (sleeve) paintFlag(context, sleeve, !front, currentStyle, zones[front ? 0 : 1]);
    const emblem = geography?.emblem();
-   if (emblem) paintState(context, emblem, front, back);
+   if (emblem) paintState(context, emblem, front, back, zones);
    const agencyBadge = geography?.approvedBadge();
    if (agencyBadge && front) {
     const art = image(new URL(agencyBadge.artwork, assetRoot).href);
@@ -192,10 +222,11 @@
      const size = Math.min(width, height) * .09;
      const scale = Math.min(size / art.naturalWidth, size / art.naturalHeight);
      const w = art.naturalWidth * scale, h = art.naturalHeight * scale;
-     context.drawImage(art, left + width * .36 - w / 2, top + height * .36 - h / 2, w, h);
+     const centerY = logoSafeY(.36, .36, w/width, h/height, zones[0]);
+     if (centerY !== null) context.drawImage(art, left + width * .36 - w / 2, top + height * centerY - h / 2, w, h);
     }
    }
-   paint(context, entries, surfaces);
+   paint(context, entries, surfaces, zones);
    canvas.setAttribute('aria-label', 'Customized product with U.S. flag on the wearer’s right shoulder. ' + entries.map(mark => mark.label + ': ' + mark.value + ', ' + mark.placement).join('; '));
    onProof?.(canvas);
   }
@@ -273,13 +304,16 @@
   attach();
   new MutationObserver(attach).observe(screen, {subtree: true, childList: true});
  }
- function paintFlag(context, surface, back, style) {
+ function paintFlag(context, surface, back, style, zones) {
   const [left, top, width, height] = surface;
   const flagWidth = Math.min(width, height) * (style === 'Tank Top' ? .047 : .095);
   const flagHeight = flagWidth / 1.9;
   const center = style === 'Tank Top' ? .36 : .23;
-  const x = left + width * (back ? 1 - center : center) - flagWidth / 2;
-  const y = top + height * (style === 'Tank Top' ? .27 : .34);
+  const sleeveX = back ? 1 - center : center;
+  const x = left + width * sleeveX - flagWidth / 2;
+  const sleeveY = logoSafeY(sleeveX, style === 'Tank Top' ? .285 : .365, flagWidth/width, flagHeight/height, zones);
+  if (sleeveY === null) return;
+  const y = top + height * sleeveY - flagHeight / 2;
   const stripe = flagHeight / 13;
   const unionWidth = flagWidth * .4;
   context.save();
@@ -307,7 +341,7 @@
   }
   context.restore();
  }
- function paintState(context, {code, placement}, front, back) {
+ function paintState(context, {code, placement}, front, back, zones) {
   const shape = window.AJStateOutlines?.[code];
   const surface = front || (placement === 'Left shoulder' ? back : null);
   if (!shape || !surface) return;
@@ -315,8 +349,10 @@
   const [x, y, w, h] = shape.box;
   const center = placement === 'Right chest' ? .37 : placement === 'Left chest' ? .63 : front ? .77 : .23;
   const scale = Math.min(width, height) * .073 / Math.max(w, h);
+  const centerY = logoSafeY(center, placement === 'Left shoulder' ? .355 : .365, w*scale/width+.008, h*scale/height+.008, zones[front ? 0 : 1]);
+  if (centerY === null) return;
   context.save();
-  context.translate(left + center * width, top + (placement === 'Left shoulder' ? .355 : .365) * height);
+  context.translate(left + center * width, top + centerY * height);
   context.scale(scale, scale);
   context.translate(-x - w / 2, -y - h / 2);
   context.strokeStyle = '#fff';
