@@ -10,6 +10,14 @@ for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
 const root=new URL('../',document.currentScript.src),url=p=>new URL(p,root).href;
 const givingLink=url('giving-back.html');
 const memorialPledge='25% of profits from Memorial Merch will be donated to Concerns of Police Survivors (C.O.P.S.).';
+const customizationBanner=document.querySelector('#customization-options > div');
+if(customizationBanner){
+ const teaser=document.createElement('p');
+ const heading=document.createElement('strong');
+ heading.textContent='Official badge customization coming soon';
+ teaser.append(heading,' · Local, county, and state options as agencies approve them.');
+ customizationBanner.append(teaser);
+}
 const givingSummary=document.querySelector('#giving');
 if(givingSummary){
  givingSummary.innerHTML='<h2>Giving Back</h2><p>'+memorialPledge+'</p><p><a href="'+givingLink+'">Learn what C.O.P.S. does for survivors</a></p>';
@@ -429,7 +437,7 @@ if(window.AJStore){
     if(item.boardMerch){
      const live=boardControls(item,photo,form);
      if(/tee|hoodie|quarter-zip/i.test(item.title)){
-      loadPresentation('assets/service-personalization.js?v=2',()=>{
+      loadPresentation('assets/service-personalization.js?v=3',()=>{
        const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
        window.AJServicePersonalization.mount(form,{
         department:['law','doc','gym'].includes(actual),
@@ -457,7 +465,7 @@ if(window.AJStore){
    }else{
     store.openItem(item,index);
     if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
-     loadPresentation('assets/service-personalization.js?v=2',()=>{
+     loadPresentation('assets/service-personalization.js?v=3',()=>{
       window.AJServicePersonalization.connectProduct(custom, actual);
      });
     }

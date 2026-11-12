@@ -226,18 +226,27 @@
   new MutationObserver(attach).observe(screen, {subtree: true, childList: true});
  }
  const agencies = [
+  ['Morris Police Department, Illinois', 'Agency contact verified · Badge artwork pending', 'https://morrisil.org/department/police-department/'],
+  ['Grundy County Sheriff’s Office, Illinois', 'Agency listing verified · Badge artwork pending', 'https://www.ilsheriff.org/county/grundy/'],
+  ['Channahon Police Department, Illinois', 'Local agency contact verified · Badge approval pending', 'https://www.channahon.org/159/Police'],
+  ['Coal City Police Department, Illinois', 'Local agency contact verified · Badge approval pending', 'https://coalcity-il.gov/department/police-department/'],
+  ['Dwight Police Department, Illinois', 'Local agency contact verified · Badge approval pending', 'https://dwightillinois.org/village-departments/police/'],
+  ['Minooka Police Department, Illinois', 'Local agency contact verified · Badge approval pending', 'https://www.minooka.com/our-government/police-department/'],
   ['Illinois State Police', 'Official emblem directive · Agency approval rules published', 'https://isp.illinois.gov/StaticFiles/docs/DepartmentDirectives/ADM-141%20DIR.pdf'],
   ['Illinois Department of Corrections', 'Official emblem reference · Apparel artwork pending', 'https://my.ilga.gov/Documents/Reports/ReportsSubmitted/7050RSGAEmail15821RSGAAttachIDOC-Quarterly-Report-July-2026.pdf'],
   ['Illinois Secretary of State Police', 'Official badge reference · Apparel artwork pending', 'https://www.ilsos.gov/content/dam/departments/police/lawupdate2425.pdf'],
   ['Chicago Police Department', 'Official star reference · Apparel artwork pending', 'https://directives.chicagopolice.org/forms/CPD-20.006.pdf'],
-  ['Morris Police Department, Illinois', 'Agency contact verified · Badge artwork pending', 'https://morrisil.org/department/police-department/'],
-  ['Grundy County Sheriff’s Office, Illinois', 'Agency listing verified · Badge artwork pending', 'https://www.ilsheriff.org/county/grundy/'],
   ['California Highway Patrol', 'Official uniform insignia specification · Apparel artwork pending', 'https://www.chp.ca.gov/siteassets/policy/hpg/hpg-73.6-ch-4.pdf'],
   ['Los Angeles Police Department', 'Official badge-use guidance · Agency approval required', 'https://lapdonlinestrgeacc.blob.core.usgovcloudapi.net/lapdonlinemedia/Media-Guide-21st-Century-Final-Approved-04.22.24-v2.pdf'],
   ['New York City Police Department', 'City merchandise licensing program · Apparel artwork pending', 'https://www.nyc.gov/assets/globalpartners/downloads/pdf/NYC_Tourism%20Marketing_CMLP.pdf'],
   ['Fire Department of the City of New York', 'Official licensed apparel examples · Apparel artwork pending', 'https://a856-citystore.nyc.gov/collections/fdny'],
  ];
  function addBadgeRequest(group) {
+  const teaser = document.createElement('p');
+  teaser.className = 'note';
+  const heading = document.createElement('strong');
+  heading.textContent = 'Official badge customization coming soon';
+  teaser.append(heading, ' · Availability depends on agency approval.');
   const label = document.createElement('label');
   label.textContent = 'Agency badge artwork request';
   const input = document.createElement('input');
@@ -263,7 +272,7 @@
    status.replaceChildren(link);
   });
   label.append(input);
-  group.append(label, list, status);
+  group.append(teaser, label, list, status);
   return input;
  }
  window.AJServicePersonalization = {mount, connectProduct};
