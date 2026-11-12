@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 /* Refresh shared header stylesheet when a new storefront build is published. */
-const cssVersion='20261111-static-banner';
+const cssVersion='studio-merch';
 for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
  try{const u=new URL(link.href,document.baseURI);if(u.pathname.endsWith('/assets/storefront.css')){u.searchParams.set('v',cssVersion);if(link.href!==u.href)link.href=u.href;}}catch(_e){}
 }
@@ -265,7 +265,7 @@ if(window.AJStore){
    const index=Number(params.get('product')),item=entries[index];
    if(item.accessory){
     const photo=document.createElement('img');
-    photo.src=tiles[index].querySelector('img').src;
+    photo.src=assets[item.img];
     photo.alt=item.title;
     document.getElementById('selected-product-image').replaceChildren(photo);
     const boardId=item.boardMerch?item.img.slice('board-merch-'.length):null;
@@ -390,5 +390,51 @@ if(window.AJStore){
 
  const form=document.querySelector('.form')||document.querySelector('.customizer');if(form&&!document.querySelector('.aj-checkout'))disabledCheckout(form);
 }
+function loadPresentation(file,ready){
+ const script=document.createElement('script');
+ script.src=url(file);
+ if(ready)script.addEventListener('load',ready,{once:true});
+ document.head.append(script);
+}
+
+loadPresentation('assets/studio-merch.js?v=1',()=>{
+ const studio=window.AJStudioMerch;
+ document.dispatchEvent(new Event('aj-studio-merch-ready'));
+ const store=window.AJStore;
+ if(store){
+  const line=store.current;
+  for(const tile of document.querySelectorAll('#product-grid .product-tile')){
+   const item=store.lines[line][Number(tile.dataset.productIndex)];
+   const original=tile.querySelector('img');
+   if(!item||!original)continue;
+   const source=item.img.startsWith('selected-gym-')&&!item.accessory?boardImage(item.img):assets[item.img];
+   const cutout=studio.source(source,item.img);
+   if(!cutout)continue;
+   const image=original.cloneNode(false);
+   image.classList.add('aj-studio-merch');
+   image.src=cutout;
+   original.replaceWith(image);
+   if((line==='law'||line==='doc')&&!item.garmentGroup&&!(line==='doc'&&item.flag==='orange')){
+    const proof=new Image();
+    proof.onload=()=>{
+     const canvas=document.createElement('canvas');
+     canvas.width=proof.naturalWidth;
+     canvas.height=proof.naturalHeight;
+     const context=canvas.getContext('2d',{willReadFrequently:true});
+     context.drawImage(proof,0,0);
+     normalizeProductFlags(context,item.img,lineColors[line]||'Silver / gray');
+     image.src=canvas.toDataURL('image/png');
+    };
+    proof.src=cutout;
+   }
+  }
+  const detail=document.querySelector('.aj-preview-column');
+  if(detail)studio.watch(detail,'#selected-product-image img, figure img');
+ }else{
+  const main=document.querySelector('main');
+  if(main)studio.watch(main,'#grid .tile img, #k9-products .tile img, #individual-proof, .aj-dedicated-service #preview, .aj-individual-designs > img');
+ }
+ loadPresentation('assets/merch-preview.js?v=1');
+});
 requestAnimationFrame(scrollToSection);
 })();

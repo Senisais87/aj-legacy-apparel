@@ -65,13 +65,26 @@
    }
    return images.get(src);
   };
+  const refreshStudio=()=>{if(!disposed)refresh()};
+  document.addEventListener('aj-studio-merch-ready',refreshStudio);
   return {
-   dispose(){disposed=true},
+   dispose(){
+    disposed=true;
+    document.removeEventListener('aj-studio-merch-ready',refreshStudio);
+   },
    draw(v){
     if(disposed||!v.source)return false;
     if(!v.compose){
      [canvas.width,canvas.height]=sizeOf(v.source);
-     canvas.getContext('2d').drawImage(v.source,0,0,canvas.width,canvas.height);
+     const context=canvas.getContext('2d');
+     context.drawImage(v.source,0,0,canvas.width,canvas.height);
+     const cutoutURL=window.AJStudioMerch?.source(v.original.src,v.artKey);
+     const mask=cutoutURL&&get(cutoutURL);
+     if(mask?.naturalWidth&&Math.abs(canvas.width/canvas.height-mask.naturalWidth/mask.naturalHeight)<.01){
+      context.globalCompositeOperation='destination-in';
+      context.drawImage(mask,0,0,canvas.width,canvas.height);
+      context.globalCompositeOperation='source-over';
+     }
     }else{
      const catalog=window.AJGarments;
      const profile=catalog.styles[v.style];
@@ -84,8 +97,6 @@
      canvas.width=size*(oneSide?1:2);
      canvas.height=size+(oneSide?0:28);
      const context=canvas.getContext('2d');
-     context.fillStyle='#242931';
-     context.fillRect(0,0,canvas.width,canvas.height);
      drawGarment(context,front,0,size,v.color);
      if(back) drawGarment(context,back,size,size,v.color);
      if(!profile.logoOnly&&!v.logoOnly){
@@ -113,6 +124,13 @@
       context.fillText('FRONT',size*.5,size+15);
       context.fillText('BACK',size*1.5,size+15);
      }
+    }
+    const context=canvas.getContext('2d');
+    const backdrop=get(new URL('studio-backdrop.webp',root).href);
+    if(backdrop.naturalWidth){
+     context.globalCompositeOperation='destination-over';
+     context.drawImage(backdrop,0,0,canvas.width,canvas.height);
+     context.globalCompositeOperation='source-over';
     }
     canvas.dataset.previewEngine=v.compose?'garment-artwork-composite':'live-product-artwork';
     canvas.dataset.garment=v.style;
