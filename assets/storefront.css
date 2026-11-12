@@ -187,3 +187,8 @@ img.aj-studio-merch,#livePreview,.aj-preview-dialog img{background:var(--aj-merc
 @media(max-width:600px){
  .aj-memorial-photo-group .aj-memorial-photo-feature{grid-template-columns:minmax(0,1fr)}
 }
+
+.aj-store #product-grid .product-tile > img{background:var(--aj-merch-backdrop)!important}
+.aj-preview-column #livePreview{display:block;width:100%;height:auto}
+.aj-memorial-pledge{padding:12px 16px;background:#171d25;color:#eee;border-left:4px solid #1769aa}
+.aj-memorial-pledge a{color:#a8d4fa;text-decoration:underline}

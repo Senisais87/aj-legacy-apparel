@@ -26,6 +26,14 @@
   };
 
   function k9(product) {
+    if (product.boardMockup) {
+      const regions = {
+        handler: [[.49,.18,.16,.46]],
+        strength: [[.21,.23,.29,.30],[.25,.58,.49,.09]],
+        search: [[.18,.34,.58,.12],[.20,.56,.48,.09]],
+      };
+      return ['blue', product.family === 'search' ? 'y' : 'x', regions[product.family]];
+    }
     if (product.original) return ['blue', 'y', [[.22,.40,.20,.26]]];
     if (product.family === 'handler') return [product.line.toLowerCase(), 'x', [[.54,.32,.10,.29]]];
     if (product.family === 'search') return [product.line.toLowerCase(), 'y', [[.29,.46,.44,.25]]];

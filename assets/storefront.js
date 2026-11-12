@@ -2,12 +2,24 @@
 (()=>{
 'use strict';
 /* Refresh shared header stylesheet when a new storefront build is published. */
-const cssVersion='memorial-photos';
+const cssVersion='charcoal-trt-giving';
 for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
  try{const u=new URL(link.href,document.baseURI);if(u.pathname.endsWith('/assets/storefront.css')){u.searchParams.set('v',cssVersion);if(link.href!==u.href)link.href=u.href;}}catch(_e){}
 }
 
 const root=new URL('../',document.currentScript.src),url=p=>new URL(p,root).href;
+const givingLink=url('giving-back.html');
+const memorialPledge='25% of profits from Memorial Merch will be donated to Concerns of Police Survivors (C.O.P.S.).';
+const givingSummary=document.querySelector('#giving');
+if(givingSummary){
+ givingSummary.innerHTML='<h2>Giving Back</h2><p>'+memorialPledge+'</p><p><a href="'+givingLink+'">Learn what C.O.P.S. does for survivors</a></p>';
+}
+for(const paragraph of document.querySelectorAll('#memorial p, .card[data-line="limited"] p')){
+ const earlier=paragraph.textContent;
+ const marker=earlier.search(/Proceeds from qualifying Limited Edition|Proceeds from qualifying items/i);
+ if(marker>=0)paragraph.textContent=earlier.slice(0,marker)+memorialPledge;
+}
+
 
 const memorialGallery=document.querySelector('#memorial .legacy-photo-grid');
 if(memorialGallery){
@@ -67,7 +79,7 @@ const homepageChrome=document.getElementById('homepage-chrome');
 const chrome=homepageChrome||document.createElement('div');
 chrome.className='aj-chrome';
 if(!homepageChrome)chrome.innerHTML=`<header class="aj-masthead" style="display:block!important;position:relative!important;width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:auto!important;background:none!important;padding:0!important;overflow:hidden!important"><img src="${url('assets/aj-legacy-header-drew.png')}?v=fcf23d7" alt="AJ Legacy Apparel memorial banner honoring Andrew John Faught" style="display:block!important;width:100%!important;height:auto!important;max-width:100%!important;object-fit:contain!important;position:relative!important;z-index:4!important;filter:none!important;mix-blend-mode:normal!important;mask-image:none!important;-webkit-mask-image:none!important"></header>`;
-chrome.insertAdjacentHTML('beforeend',`<nav class="aj-navigation" aria-label="Main navigation"><a href="${url('index.html')}#memorial">Our Story</a><a href="${url('index.html')}#collection-navigation">Collections</a><a href="${url('index.html?collection=limited')}">Limited Edition</a><a href="${url('index.html')}#customization-options">Customization</a><a href="${url('index.html')}#giving">Giving Back</a><a href="${url('contact.html')}">Contact Us</a><span class="aj-prelaunch">COMING SOON · CHECKOUT DISABLED</span></nav><section class="aj-collection-strip" aria-label="Apparel collections">${collections.map(([k,n,img])=>`<a href="${link(k)}" data-collection="${k}"><img src="${url(img)}" alt="${n} approved group merchandise"><strong>${n}<small>COLLECTION</small></strong></a>`).join('')}</section><section class="aj-collection-banner" aria-label="Selected collection"><div><span>APPAREL WITH PURPOSE</span><h1></h1><p></p></div><img alt=""></section>`);
+chrome.insertAdjacentHTML('beforeend',`<nav class="aj-navigation" aria-label="Main navigation"><a href="${url('index.html')}#memorial">Our Story</a><a href="${url('index.html')}#collection-navigation">Collections</a><a href="${url('index.html?collection=limited')}">Limited Edition</a><a href="${url('index.html')}#customization-options">Customization</a><a href="${givingLink}">Giving Back</a><a href="${url('contact.html')}">Contact Us</a><span class="aj-prelaunch">COMING SOON · CHECKOUT DISABLED</span></nav><section class="aj-collection-strip" aria-label="Apparel collections">${collections.map(([k,n,img])=>`<a href="${link(k)}" data-collection="${k}"><img src="${url(img)}" alt="${n} approved group merchandise"><strong>${n}<small>COLLECTION</small></strong></a>`).join('')}</section><section class="aj-collection-banner" aria-label="Selected collection"><div><span>APPAREL WITH PURPOSE</span><h1></h1><p></p></div><img alt=""></section>`);
 if(!homepageChrome)document.body.prepend(chrome);
 /* Only the approved single banner is permitted. Reset all legacy header effects. */
 const approvedHeader=chrome.querySelector('.aj-masthead');
@@ -87,7 +99,7 @@ if(approvedHeader&&approvedImage){
 }
 
 chrome.querySelector('.aj-collection-strip').id='collection-navigation';
-document.querySelectorAll('a[href]').forEach(anchor=>{if(anchor.hash==='#collections')anchor.hash='collection-navigation'});
+document.querySelectorAll('a[href]').forEach(anchor=>{if(anchor.hash==='#collections')anchor.hash='collection-navigation';if(anchor.hash==='#giving')anchor.href=givingLink});
 // Restore section navigation after the legacy renderer resets the scroll position.
 const sectionIds=new Set(['memorial','collection-navigation','customization-options','giving']);
 function scrollToSection(){
@@ -140,7 +152,7 @@ const boardMerch={
   ["trt-tee", "Corrections Tactical Response Team Tee"],
   ["correctional-officer-tee", "Correctional Officer Gray Tee"],
   ["doc-shield-hoodie", "DOC Shield Hoodie"],
-  ["orange-line-flag-top", "Thin Orange Line Flag Top"],
+  ["orange-line-flag-top", "TRT — Thin Orange Line Flag Tee"],
   ["doc-joggers", "DOC Shield Joggers"],
   ["doc-shield-cap", "AJ Shield Corrections Cap"],
   ["trt-cap", "TRT Cap"],
@@ -170,6 +182,80 @@ const boardMerch={
  ],
 };
 const boardImage=id=>url('assets/merch-individual/'+id+'.webp');
+const stripeColors={
+ 'Blue':'#1769aa','Silver / gray':'#a6a8ab','Orange':'#f47721','Red':'#c8242b',
+ 'Green':'#39844c','Purple':'#8548a9','White':'#f4f4f4','Gold':'#e3b126','Monochrome':'#737373'
+};
+const boardStripes={
+ 'orange-line-flag-top':['orange','x',[[.55,.16,.057,.66]]],
+ 'corrections-flag-hoodie':['orange','x',[[.54,.20,.19,.60]]],
+ 'vertical-flag-hoodie':['blue','x',[[.31,.22,.39,.62]]],
+ 'honor-service-sacrifice':['blue','y',[[.24,.22,.50,.29]]],
+ 'peacemakers-tee':['blue','x',[[.22,.24,.33,.65],[.01,.30,.19,.24]]],
+ 'blue-line-quarter-zip':['blue','y',[[.53,.21,.24,.19]]],
+ 'thin-blue-line-cap':['blue','y',[[.23,.30,.53,.36]]],
+ 'memorial-line-cap':['blue','y',[[.12,.10,.66,.58]]],
+ 'their-watch':['blue','x',[[.34,.17,.18,.64]]],
+ 'memorial-shield-hoodie':['blue','y',[[.015,.30,.18,.25]]],
+ 'correctional-officer-tee':['orange','y',[[.13,.28,.19,.24]]]
+};
+
+function boardControls(item,photo,form){
+ const id=item.img.slice('board-merch-'.length);
+ const stripe=boardStripes[id];
+ const trt=id==='trt-tee'||id==='orange-line-flag-top';
+ if(!stripe&&!trt)return;
+ const canvas=document.createElement('canvas');
+ canvas.id='livePreview';
+ canvas.setAttribute('aria-label',item.title+' — live preview');
+ photo.after(canvas);
+ photo.hidden=true;
+ let select;
+ if(stripe){
+  const label=document.createElement('label');
+  label.textContent='Thin-line flag color';
+  select=document.createElement('select');
+  select.id='flag';
+  for(const name of Object.keys(stripeColors))select.add(new Option(name,name));
+  select.value=stripe[0]==='orange'?'Orange':'Blue';
+  label.append(select);
+  form.append(label);
+ }
+ let personal;
+ if(trt){
+  const label=document.createElement('label');
+  label.textContent='Name or unit';
+  personal=document.createElement('input');
+  personal.id='trt-personalization';
+  personal.maxLength=24;
+  label.append(personal);
+  form.append(label);
+ }
+ const source=new Image();
+ function draw(){
+  if(!source.naturalWidth)return;
+  canvas.width=source.naturalWidth;
+  canvas.height=source.naturalHeight;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(source,0,0);
+  if(stripe&&select.value.toLowerCase()!==stripe[0])window.AJPreviewStripes.paint(ctx,stripe,[stripeColors[select.value]]);
+  if(personal?.value.trim()){
+   ctx.font='700 '+Math.round(canvas.width*.019)+'px system-ui';
+   ctx.fillStyle='#fff';
+   ctx.textAlign='center';
+   ctx.fillText(personal.value.trim().toUpperCase(),canvas.width*.69,canvas.height*.17,canvas.width*.15);
+  }
+ }
+ source.onload=draw;
+ source.src=photo.src;
+ select?.addEventListener('change',draw);
+ personal?.addEventListener('input',draw);
+ document.addEventListener('aj-studio-merch-ready',()=>{
+  const cutout=window.AJStudioMerch.source(source.src);
+  if(cutout)source.src=cutout;
+ },{once:true});
+}
+
 const boardFamilies={
  'gym-chest-logo-tee':{title:'AJ Legacy Mountain Chest Logo Tee',label:'T-shirt style',options:[['gym-chest-logo-tee','Training tee'],['memorial-chest-logo-tee','Classic tee']]},
  'shield-joggers':{title:'AJ Shield Bottoms',label:'Garment style',options:[['shield-joggers','Joggers'],['shield-shorts','Shorts']]},
@@ -302,7 +388,15 @@ if(window.AJStore){
    const index=entries.findIndex(item=>item.img==='board-merch-forever-27');
    if(index!==-1){
     grid.prepend(tiles[index]);
-    const featured=document.createElement('a');
+    const donation=document.createElement('p');
+   donation.className='aj-memorial-pledge';
+   donation.textContent=memorialPledge+' ';
+   const read=document.createElement('a');
+   read.href=givingLink;
+   read.textContent='Giving Back';
+   donation.append(read);
+   catalogNotice.after(donation);
+   const featured=document.createElement('a');
     featured.href=collectionURL(key,sub)+'&product='+index;
     featured.textContent='View the gray Forever 27 Memorial Tee';
     featured.style.color='inherit';
@@ -321,6 +415,7 @@ if(window.AJStore){
     const form=document.getElementById('custom-form');
     document.getElementById('flow-product').textContent=family?.title||item.title;
     form.textContent=item.detail;
+    if(item.boardMerch)boardControls(item,photo,form);
     if(family){
      const label=document.createElement('label');
      label.textContent=family.label;
@@ -445,7 +540,7 @@ function loadPresentation(file,ready){
  document.head.append(script);
 }
 
-loadPresentation('assets/studio-merch.js?v=2',()=>{
+loadPresentation('assets/studio-merch.js?v=3',()=>{
  const studio=window.AJStudioMerch;
  document.dispatchEvent(new Event('aj-studio-merch-ready'));
  const store=window.AJStore;
@@ -462,7 +557,8 @@ loadPresentation('assets/studio-merch.js?v=2',()=>{
    image.classList.add('aj-studio-merch');
    image.src=cutout;
    original.replaceWith(image);
-   if((line==='law'||line==='doc')&&!item.garmentGroup&&!(line==='doc'&&item.flag==='orange')){
+   const stripes=window.AJPreviewStripes?.service[item.img];
+   if(stripes?.length){
     const proof=new Image();
     proof.onload=()=>{
      const canvas=document.createElement('canvas');
@@ -470,7 +566,8 @@ loadPresentation('assets/studio-merch.js?v=2',()=>{
      canvas.height=proof.naturalHeight;
      const context=canvas.getContext('2d',{willReadFrequently:true});
      context.drawImage(proof,0,0);
-     normalizeProductFlags(context,item.img,lineColors[line]||'Silver / gray');
+     const color=line==='law'?stripeColors.Blue:stripeColors['Silver / gray'];
+     for(const stripe of stripes)window.AJPreviewStripes.paint(context,stripe,[color]);
      image.src=canvas.toDataURL('image/png');
     };
     proof.src=cutout;
