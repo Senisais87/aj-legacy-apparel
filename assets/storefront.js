@@ -102,7 +102,7 @@ const boardMerch={
  limited:[
   ["their-watch", "Their Watch Has Ended Memorial Tee"],
   ["memorial-shield-hoodie", "Memorial AJ Shield Hoodie"],
-  ["forever-27", "Andrew John Faught Forever 27 Memorial Tee"],
+  ["forever-27", "Forever 27 — Andrew John Faught Gray Memorial Tee"],
   ["psalm-34", "Psalm 34:18 Memorial Hoodie"],
   ["memorial-patch-cap", "Memorial Leather Patch Cap"],
   ["memorial-line-cap", "Memorial Thin Blue Line Cap"],
@@ -249,6 +249,17 @@ if(window.AJStore){
     image.replaceWith(unitImage);
    }
    if(boardId==='trt-cap'||variantIds.has(boardId)||item.garmentGroup==='logo'&&item.style!=='Crewneck'||item.garmentGroup==='lower'&&item.style!=='Shorts')tile.remove();
+  }
+  if(actual==='limited'&&!params.has('product')){
+   const index=entries.findIndex(item=>item.img==='board-merch-forever-27');
+   if(index!==-1){
+    grid.prepend(tiles[index]);
+    const featured=document.createElement('a');
+    featured.href=collectionURL(key,sub)+'&product='+index;
+    featured.textContent='View the gray Forever 27 Memorial Tee';
+    featured.style.color='inherit';
+    catalogNotice.append(' ',featured);
+   }
   }
   if(params.has('product')&&Number.isInteger(Number(params.get('product')))&&entries[Number(params.get('product'))]){
    const index=Number(params.get('product')),item=entries[index];
