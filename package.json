@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "esbuild customizer/src/App.jsx --bundle --minify --outfile=assets/customizer.js && tailwindcss -i customizer/src/styles.css -o assets/customizer.css --minify",
-    "test": "node --test customizer/src/rules.test.mjs"
+    "test": "node --test customizer/src/*.test.mjs"
   },
   "repository": {
     "type": "git",

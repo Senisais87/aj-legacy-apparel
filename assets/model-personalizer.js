@@ -6,23 +6,31 @@ const root=new URL('../',script.src);
 const cache=new Map();
 const colors={Black:'#17191d',Charcoal:'#363a41',Navy:'#152b49','Royal Blue':'#1769aa',White:'#eeeeee','Heather Gray':'#8b9096',Red:'#c8242b',Orange:'#f47721',Olive:'#596245',Blue:'#1769aa',Purple:'#8548a9',Gold:'#e3b126',Silver:'#a6a8ab',Green:'#527b48'};
 function load(url){url=new URL(url,root).href;if(!cache.has(url))cache.set(url,new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('Preview image could not load'));im.src=url}));return cache.get(url)}
-function artwork(im,box,lineColors){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*box[2]));c.height=Math.max(1,Math.round(im.height*box[3]));const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,im.width*box[0],im.height*box[1],im.width*box[2],im.height*box[3],0,0,c.width,c.height);const p=x.getImageData(0,0,c.width,c.height),d=p.data;
- for(let i=0;i<d.length;i+=4){const hi=Math.max(d[i],d[i+1],d[i+2]),lo=Math.min(d[i],d[i+1],d[i+2]);const colorful=hi-lo>28&&hi>50;d[i+3]=Math.round(d[i+3]*(colorful?Math.min(1,(hi-30)/60):Math.max(0,Math.min(1,(hi-55)/55))));
- // Recolor the thin-line ink, preserving the dog's natural brown coat.
- const blue=d[i+2]>d[i]*1.3&&d[i+2]>d[i+1]*1.15;const orange=d[i]>120&&d[i+1]>45&&d[i+1]<d[i]*.75&&d[i+2]<d[i+1]*.6;const purple=d[i+2]>d[i+1]*1.45&&d[i]>d[i+1]*1.35&&d[i+2]>65;const red=d[i]>d[i+1]*1.8&&d[i]>d[i+2]*1.7;const gold=box[0]!==.22&&d[i]>110&&d[i+1]>75&&d[i+2]<65;
- if(lineColors.length&&(blue||purple||red||(!/k9/i.test(im.src)&&(gold||orange)))){const y=Math.floor(i/4/c.width),name=lineColors[Math.min(lineColors.length-1,Math.floor(y/(c.height/lineColors.length)))],hex=colors[name]||name;const rgb=[1,3,5].map(n=>parseInt(hex.slice(n,n+2),16));const shade=Math.max(.65,hi/255);for(let k=0;k<3;k++)d[i+k]=Math.min(255,rgb[k]*shade);}}
+function artwork(im,box,lineColors=[],stripe){
+ const c=document.createElement('canvas');
+ c.width=Math.max(1,Math.round(im.naturalWidth*box[2]));
+ c.height=Math.max(1,Math.round(im.naturalHeight*box[3]));
+ const x=c.getContext('2d',{willReadFrequently:true});
+ x.drawImage(im,im.naturalWidth*box[0],im.naturalHeight*box[1],im.naturalWidth*box[2],im.naturalHeight*box[3],0,0,c.width,c.height);
+ const p=x.getImageData(0,0,c.width,c.height),d=p.data;
+ for(let i=0;i<d.length;i+=4){
+  const hi=Math.max(d[i],d[i+1],d[i+2]),lo=Math.min(d[i],d[i+1],d[i+2]);
+  const colorful=hi-lo>28&&hi>50;
+  d[i+3]=Math.round(d[i+3]*(colorful?Math.min(1,(hi-30)/60):Math.max(0,Math.min(1,(hi-55)/55))));
+ }
  x.putImageData(p,0,0);
+ window.AJPreviewStripes?.paint(x,stripe,lineColors.map(name=>colors[name]||name),box);
  // Trim transparent margins without stretching the artwork's original proportions.
  let l=c.width,t=c.height,r=-1,b=-1;
  for(let y=0;y<c.height;y++)for(let a=0;a<c.width;a++)if(d[(y*c.width+a)*4+3]>120){l=Math.min(l,a);r=Math.max(r,a);t=Math.min(t,y);b=Math.max(b,y)}
  if(r<l)return c;const clean=document.createElement('canvas');clean.width=r-l+1;clean.height=b-t+1;clean.getContext('2d').drawImage(c,l,t,clean.width,clean.height,0,0,clean.width,clean.height);return clean;}
 function photo(template,hoodie,back,color){const c=document.createElement('canvas');c.width=c.height=768;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(template,back*template.width/2,hoodie*template.height/2,template.width/2,template.height/2,0,0,768,768);
- if(color!=='Black'){x.save();x.beginPath();const points=hoodie?[[304,32],[468,32],[502,133],[581,188],[640,430],[625,684],[551,684],[529,430],[521,687],[244,687],[236,430],[211,684],[137,684],[122,430],[181,188],[269,133]]:[[292,45],[478,45],[562,96],[665,295],[567,344],[542,300],[555,684],[213,684],[225,300],[201,344],[98,295],[201,96]];points.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.closePath();x.clip();const rgb=[1,3,5].map(n=>parseInt((colors[color]||'#17191d').slice(n,n+2),16));const p=x.getImageData(0,0,768,768),d=p.data;
+ if(color!=='Black'){x.save();x.beginPath();const points=hoodie?[[304,32],[468,32],[502,133],[581,188],[640,430],[625,684],[551,684],[529,430],[521,687],[244,687],[236,430],[211,684],[137,684],[122,430],[181,188],[269,133]]:[[292,45],[478,45],[562,96],[665,295],[567,344],[542,300],[555,684],[213,684],[225,300],[201,344],[98,295],[201,96]];points.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.closePath();x.clip();const rgb=[1,3,5].map(n=>parseInt((colors[color]||color||'#17191d').slice(n,n+2),16));const p=x.getImageData(0,0,768,768),d=p.data;
  // Only neutral dark fabric is colored; skin and the studio background are preserved.
  for(let i=0;i<d.length;i+=4){const hi=Math.max(d[i],d[i+1],d[i+2]),lo=Math.min(d[i],d[i+1],d[i+2]);if(hi>105||hi-lo>18)continue;const l=(d[i]+d[i+1]+d[i+2])/3;for(let k=0;k<3;k++)d[i+k]=Math.min(255,rgb[k]*(.55+l/100));}
  const painted=document.createElement('canvas');painted.width=painted.height=768;painted.getContext('2d').putImageData(p,0,0);x.drawImage(painted,0,0);x.restore();}return c;}
 function text(ctx,value,cx,y,maxWidth,ink){if(!value)return;ctx.save();ctx.fillStyle=ink;ctx.textAlign='center';ctx.textBaseline='middle';let size=15;ctx.font='700 '+size+'px Arial';while(ctx.measureText(value).width>maxWidth&&size>8){size--;ctx.font='700 '+size+'px Arial'}ctx.fillText(value,cx,y,maxWidth);ctx.restore();}
-window.AJModelPersonalizer={create(canvas){let sequence=0;return{async draw(v){const version=++sequence;try{const [template,source]=await Promise.all([load('assets/mockups/garment-only-studio.webp'),load(v.source)]);if(version!==sequence)return;canvas.width=1536;canvas.height=830;const ctx=canvas.getContext('2d');ctx.drawImage(photo(template,v.hoodie,false,v.color),0,0);ctx.drawImage(photo(template,v.hoodie,true,v.color),768,0);const art=artwork(source,v.box||[.22,.36,.20,.36],v.lines||[]);const placement=v.placement||'Full Front',back=/Back/.test(placement);let cx=(back?1152:384),top=v.hoodie?235:185,w=235,h=v.hoodie?190:310;
+window.AJModelPersonalizer={async artwork(source,box,lines,stripe){return artwork(await load(source),box,lines,stripe)},create(canvas){let sequence=0;return{async draw(v){const version=++sequence;try{const [template,source]=await Promise.all([load('assets/mockups/garment-only-studio.webp'),load(v.source)]);if(version!==sequence)return;canvas.width=1536;canvas.height=830;const ctx=canvas.getContext('2d');ctx.drawImage(photo(template,v.hoodie,false,v.color),0,0);ctx.drawImage(photo(template,v.hoodie,true,v.color),768,0);delete canvas.dataset.previewError;const art=artwork(source,v.box||[.22,.36,.20,.36],v.lines,v.stripe);const placement=v.placement||'Full Front',back=/Back/.test(placement);let cx=(back?1152:384),top=v.hoodie?235:185,w=235,h=v.hoodie?190:310;
  if(/Chest/.test(placement)){cx=/Right/.test(placement)?330:438;top=v.hoodie?190:175;w=70;h=75;}else if(/Sleeve/.test(placement)){cx=/Right/.test(placement)?245:520;top=210;w=36;h=48;}else if(placement==='Upper Back'){top=v.hoodie?215:155;w=170;h=145;}else if(back){top=v.hoodie?225:160;w=235;h=335;}
  const scale=Math.min(w/art.width,h/art.height);ctx.drawImage(art,cx-art.width*scale/2,top,art.width*scale,art.height*scale);const ink=['White','Heather Gray'].includes(v.color)?'#101820':'#ffffff';const opposite=/Left Chest/.test(placement)?330:438;
  text(ctx,v.name,opposite,v.hoodie?185:172,100,ink);text(ctx,v.department,opposite,v.hoodie?205:192,100,ink);text(ctx,v.badge,opposite,v.hoodie?225:212,95,ink);text(ctx,v.front,384,v.hoodie?455:535,210,ink);text(ctx,v.back,1152,v.hoodie?590:535,210,ink);
