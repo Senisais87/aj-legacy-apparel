@@ -18,7 +18,7 @@ if(legacyHero)legacyHero.remove();
 const homepageChrome=document.getElementById('homepage-chrome');
 const chrome=homepageChrome||document.createElement('div');
 chrome.className='aj-chrome';
-if(!homepageChrome)chrome.innerHTML=`<header class="aj-masthead" style="display:block!important;position:relative!important;width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:auto!important;background:none!important;padding:0!important;overflow:hidden!important"><img src="${url('assets/aj_legacy_header_left_brightened_preview.jpg')}?v=fcf23d7" alt="AJ Legacy Apparel memorial banner honoring Andrew John Faught" style="display:block!important;width:100%!important;height:auto!important;max-width:100%!important;object-fit:contain!important;position:relative!important;z-index:4!important;filter:none!important;mix-blend-mode:normal!important;mask-image:none!important;-webkit-mask-image:none!important"></header>`;
+if(!homepageChrome)chrome.innerHTML=`<header class="aj-masthead" style="display:block!important;position:relative!important;width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:auto!important;background:none!important;padding:0!important;overflow:hidden!important"><img src="${url('assets/aj-legacy-header-drew.png')}?v=fcf23d7" alt="AJ Legacy Apparel memorial banner honoring Andrew John Faught" style="display:block!important;width:100%!important;height:auto!important;max-width:100%!important;object-fit:contain!important;position:relative!important;z-index:4!important;filter:none!important;mix-blend-mode:normal!important;mask-image:none!important;-webkit-mask-image:none!important"></header>`;
 chrome.insertAdjacentHTML('beforeend',`<nav class="aj-navigation" aria-label="Main navigation"><a href="${url('index.html')}#memorial">Our Story</a><a href="${url('index.html')}#collection-navigation">Collections</a><a href="${url('index.html?collection=limited')}">Limited Edition</a><a href="${url('index.html')}#customization-options">Customization</a><a href="${url('index.html')}#giving">Giving Back</a><a href="${url('contact.html')}">Contact Us</a><span class="aj-prelaunch">COMING SOON · CHECKOUT DISABLED</span></nav><section class="aj-collection-strip" aria-label="Apparel collections">${collections.map(([k,n,img])=>`<a href="${link(k)}" data-collection="${k}"><img src="${url(img)}" alt="${n} approved group merchandise"><strong>${n}<small>COLLECTION</small></strong></a>`).join('')}</section><section class="aj-collection-banner" aria-label="Selected collection"><div><span>APPAREL WITH PURPOSE</span><h1></h1><p></p></div><img alt=""></section>`);
 if(!homepageChrome)document.body.prepend(chrome);
 /* Only the approved single banner is permitted. Reset all legacy header effects. */
@@ -90,6 +90,21 @@ if(window.AJStore){
     verse:quoteDesign?'Do the things you don’t want to do to show your body that your mind is the boss.':'',
     detail:quoteDesign?'Drew’s words on training and discipline.':'Selected Gym Attire artwork.',
    });
+  }
+ }
+ if(store.lines[actual]){
+  const garments=window.AJGarments;
+  for(const style of garments.branded){
+   const img='aj-'+garments.styles[style].file;
+   store.registerArtwork(img,garments.image(style,'front',true));
+   store.lines[actual].push({img,title:'AJ Legacy '+style,kind:'shirt',style,garmentGroup:'logo',flag:'none'});
+  }
+  if(actual==='gym'){
+   for(const style of garments.bottoms){
+    const img='aj-'+garments.styles[style].file;
+    store.registerArtwork(img,garments.image(style,'front',true));
+    store.lines.gym.push({img,title:'AJ Legacy '+style,kind:'shirt',style,garmentGroup:'lower',flag:'none',logoOnly:true});
+   }
   }
  }
  if(actual&&store.lines[actual]){

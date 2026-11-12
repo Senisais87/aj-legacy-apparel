@@ -1,78 +1,119 @@
-/* Render a customized product image or compose the artwork on the selected garment. */
-(function(){
- 'use strict';
- const silhouettes={
-  Shirt:'M135 55L176 38Q210 66 244 38L285 55L344 114L292 151L276 126V391H144V126L128 151L76 114Z',
-  Hoodie:'M164 51Q162 12 210 12Q258 12 256 51L290 66L323 111L354 363L308 371L277 167V391H143V167L112 371L66 363L97 111L130 66Z',
-  'Tank Top':'M157 42L183 42Q210 93 237 42H263Q255 109 281 134L277 391H143L139 134Q165 109 157 42Z',
- };
- function compose(context,v){
-  const shape=new Path2D(silhouettes[v.style]);
-  const image=v.original;
-  const ctx=context;
-  const {width,height}=ctx.canvas;
-  ctx.fillStyle='#22262d';ctx.fillRect(0,0,width,height);
-  const garment=(offset,label)=>{
-   ctx.save();ctx.translate(offset,0);
-   ctx.fillStyle=v.color;ctx.strokeStyle='#89909a';ctx.lineWidth=2;ctx.fill(shape);ctx.stroke(shape);
-   if(v.style==='Hoodie'){
-    ctx.strokeStyle='#89909a';ctx.stroke(new Path2D(label==='FRONT'?'M164 51Q210 100 256 51M168 333L185 303H235L252 333V360H168Z':'M164 51Q210 87 256 51'));
-   }
-   ctx.fillStyle='#e9edf2';ctx.textAlign='center';ctx.font='bold 14px system-ui';ctx.fillText(label,210,414);
-   ctx.restore();
-  };
-  garment(0,'FRONT');garment(420,'BACK');
-  const front=v.side==='Front';
-  const offset=front?0:420;
-  const standalone=v.artKey.startsWith('selected-gym-');
-  const box=standalone?[0,0,1,1]:v.mainBox||[.60,.22,.30,.55];
-  const [x,y,w,h]=box.map((n,i)=>n*(i%2?image.naturalHeight:image.naturalWidth));
-  const cut=document.createElement('canvas');
-  cut.width=Math.ceil(w);cut.height=Math.ceil(h);
-  const crop=cut.getContext('2d',{willReadFrequently:true});
-  crop.drawImage(image,x,y,w,h,0,0,cut.width,cut.height);
-  const pixels=crop.getImageData(0,0,cut.width,cut.height);
-  if(!standalone||v.artKey==='selected-gym-01'){
-   for(let i=0;i<pixels.data.length;i+=4){
-    const [r,g,b]=[pixels.data[i],pixels.data[i+1],pixels.data[i+2]];
-    const hi=Math.max(r,g,b),lo=Math.min(r,g,b);
-    if(v.artKey==='selected-gym-01'&&lo>177&&hi-lo<17)pixels.data[i+3]=0;
-    else if(!standalone&&hi-lo<24)pixels.data[i+3]*=Math.min(1,Math.max(0,(hi-45)/75));
-   }
-   crop.putImageData(pixels,0,0);
-  }
-  const scale=Math.min(112/cut.width,156/cut.height);
-  ctx.drawImage(cut,offset+210-cut.width*scale/2,v.style==='Hoodie'?130:115,cut.width*scale,cut.height*scale);
-  if(v.frontLogo){
-   const [lx,ly,lw,lh]=v.frontLogo.map((n,i)=>n*(i%2?image.naturalHeight:image.naturalWidth));
-   const logo=document.createElement('canvas');
-   logo.width=Math.ceil(lw);logo.height=Math.ceil(lh);
-   const logoContext=logo.getContext('2d',{willReadFrequently:true});
-   logoContext.drawImage(image,lx,ly,lw,lh,0,0,logo.width,logo.height);
-   const ink=logoContext.getImageData(0,0,logo.width,logo.height);
-   for(let i=0;i<ink.data.length;i+=4)ink.data[i+3]*=Math.min(1,Math.max(0,(ink.data[i]-90)/75));
-   logoContext.putImageData(ink,0,0);
-   ctx.drawImage(logo,228,78,30,30);
-  }
-  if(v.text){
-   ctx.fillStyle=v.ink;ctx.textAlign='center';ctx.font='bold 13px system-ui';
-   ctx.fillText(v.text,front?172:175,front?101:115,front?56:65);
-  }
+/* Place print artwork on the flat lay for the selected garment. */
+(() => {
+ const root = new URL('./', document.currentScript.src);
+ const black = '#171717';
+ function sizeOf(image) {
+  return [image.naturalWidth || image.width, image.naturalHeight || image.height];
  }
- window.AJGraphicsPreview={create(canvas){
-  let disposed=false;
+ function fit(context, image, x, y, width, height) {
+  const [w, h] = sizeOf(image);
+  const scale = Math.min(width / w, height / h);
+  context.drawImage(image, x - w * scale / 2, y - h * scale / 2, w * scale, h * scale);
+ }
+ function layer(width, height) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  return canvas.getContext('2d', {willReadFrequently:true});
+ }
+ function artwork(v) {
+  const [iw, ih] = sizeOf(v.original);
+  const box = v.rawArt ? [0,0,1,1] : v.mainBox ||
+   (v.originalSide === 'Front' ? [.27,.23,.46,.55] : [.64,.22,.27,.51]);
+  const [x,y,w,h] = box.map((n,i) => n * (i % 2 ? ih : iw));
+  const ratio = Math.min(1, 680 / Math.max(w,h));
+  const cut = layer(Math.ceil(w * ratio), Math.ceil(h * ratio));
+  cut.drawImage(v.original,x,y,w,h,0,0,cut.canvas.width,cut.canvas.height);
+  if(v.rawArt && v.artKey !== 'selected-gym-01') return cut.canvas;
+  const pixels = cut.getImageData(0,0,cut.canvas.width,cut.canvas.height);
+  for(let i=0;i<pixels.data.length;i+=4){
+   const r=pixels.data[i],g=pixels.data[i+1],b=pixels.data[i+2];
+   const hi=Math.max(r,g,b),lo=Math.min(r,g,b);
+   if(v.rawArt && lo>177 && hi-lo<17) pixels.data[i+3]=0;
+   if(!v.rawArt && hi-lo<30) pixels.data[i+3]*=Math.max(0,Math.min(1,(hi-37)/73));
+  }
+  cut.putImageData(pixels,0,0);
+  return cut.canvas;
+ }
+ function drawGarment(context, image, x, size, color) {
+  if(!color || color === black || color === '#151515' || color === '#15171b'){
+   context.drawImage(image,x,0,size,size);
+   return;
+  }
+  const work=layer(size,size);
+  work.drawImage(image,0,0,size,size);
+  const pixels=work.getImageData(0,0,size,size);
+  const tint=color.match(/[0-9a-f]{2}/gi).map(channel=>parseInt(channel,16));
+  for(let i=0;i<pixels.data.length;i+=4){
+   if(!pixels.data[i+3])continue;
+   const shade=.70+(pixels.data[i]+pixels.data[i+1]+pixels.data[i+2])/195;
+   for(let c=0;c<3;c++) pixels.data[i+c]=tint[c]*shade;
+  }
+  work.putImageData(pixels,0,0);
+  context.drawImage(work.canvas,x,0);
+ }
+ window.AJGraphicsPreview={create(canvas, refresh){
+  const images=new Map();
+  let disposed=false, artKey, cut;
+  const get=src=>{
+   if(!images.has(src)){
+    const image=new Image();
+    image.onload=()=>{if(!disposed)refresh()};
+    image.onerror=()=>{if(!disposed)refresh()};
+    images.set(src,image);
+    image.src=src;
+   }
+   return images.get(src);
+  };
   return {
    dispose(){disposed=true},
    draw(v){
     if(disposed||!v.source)return false;
-    const width=v.source.naturalWidth||v.source.width;
-    const height=v.source.naturalHeight||v.source.height;
-    if(!width||!height)return false;
-    canvas.width=v.compose?840:width;
-    canvas.height=v.compose?435:height;
-    const context=canvas.getContext('2d');
-    if(v.compose)compose(context,v);
-    else context.drawImage(v.source,0,0,width,height);
+    if(!v.compose){
+     [canvas.width,canvas.height]=sizeOf(v.source);
+     canvas.getContext('2d').drawImage(v.source,0,0,canvas.width,canvas.height);
+    }else{
+     const catalog=window.AJGarments;
+     const profile=catalog.styles[v.style];
+     const oneSide=profile.lower||profile.logoOnly;
+     const front=get(catalog.image(v.style));
+     const back=oneSide?null:get(catalog.image(v.style,'back'));
+     const logo=get(new URL('logo.png',root).href);
+     if([front,back,logo].some(image=>image&&!image.naturalWidth))return false;
+     const size=oneSide?540:420;
+     canvas.width=size*(oneSide?1:2);
+     canvas.height=size+(oneSide?0:28);
+     const context=canvas.getContext('2d');
+     context.fillStyle='#242931';
+     context.fillRect(0,0,canvas.width,canvas.height);
+     drawGarment(context,front,0,size,v.color);
+     if(back) drawGarment(context,back,size,size,v.color);
+     if(!profile.logoOnly&&!v.logoOnly){
+      const version=v.original.dataset?.renderVersion;
+      const key=[v.artKey,version,v.stripe].join('|');
+      if(key!==artKey){cut=artwork(v);artKey=key}
+      const [x,y,w,h]=profile.print;
+      fit(context,cut,((back&&v.side==='Back'?1:0)+x)*size,y*size,w*size,h*size);
+     }
+     if(profile.logoOnly||profile.lower||v.side==='Back'){
+      const [x,y,w]=profile.logo;
+      fit(context,logo,x*size,y*size,w*size,w*size);
+     }
+     if(v.text&&!profile.logoOnly){
+      context.fillStyle=v.ink;
+      context.font='bold 13px system-ui';
+      context.textAlign='center';
+      const short=v.style==='Shorts';
+      context.fillText(v.text,size*(profile.lower?(short?.32:.40):.38),size*(profile.lower?(short?.45:.30):.28),size*(profile.lower?.105:.17));
+     }
+     if(back){
+      context.fillStyle='#f2f3f5';
+      context.font='600 14px system-ui';
+      context.textAlign='center';
+      context.fillText('FRONT',size*.5,size+15);
+      context.fillText('BACK',size*1.5,size+15);
+     }
+    }
     canvas.dataset.previewEngine=v.compose?'garment-artwork-composite':'live-product-artwork';
     canvas.dataset.garment=v.style;
     canvas.dataset.placement=v.side;
