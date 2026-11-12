@@ -1,4 +1,18 @@
 (() => {
+ const assetRoot = new URL('./', document.currentScript.src);
+ const scripts = new Map();
+ function loadScript(file) {
+  if (!scripts.has(file)) scripts.set(file, new Promise((resolve, reject) => {
+   const script = document.createElement('script');
+   script.src = new URL(file, assetRoot).href;
+   script.onload = resolve;
+   script.onerror = reject;
+   document.head.append(script);
+  }));
+  return scripts.get(file);
+ }
+ // Add a badge only after confirming written permission for previews and printed apparel.
+ const approvedBadges = [];
  const chest = ['Left chest', 'Right chest'];
  const shoulders = 'Across back shoulders';
  const spine = 'Down back spine';
@@ -8,6 +22,8 @@
   Rank: [...chest, shoulders, spine, ...hems],
   'EOW date': [...chest, shoulders, ...hems],
   'Facility / Department': [...chest, shoulders, ...hems],
+  Unit: [...chest, shoulders, spine],
+  'County / City': [...chest, shoulders, ...hems],
  };
  const boxes = {
   'Left chest': [0, .64, .30, .13],
@@ -51,14 +67,15 @@
   const legend = document.createElement('legend');
   legend.textContent = 'Garment personalization';
   group.append(legend);
-  const fields = ['Name', 'Rank', ...(department ? ['Facility / Department'] : []), 'EOW date'].map(label => {
+  const fields = ['Name', 'Rank', ...(department ? ['Facility / Department'] : []), ...(badge ? ['Unit'] : []), 'EOW date'].map(label => {
    const row = document.createElement('div');
    const caption = document.createElement('label');
    caption.textContent = label;
    const input = document.createElement('input');
    input.type = label === 'EOW date' ? 'date' : 'text';
    input.maxLength = 48;
-   if (input.type === 'text') input.placeholder = 'Optional';
+   if (input.type === 'text') input.placeholder = label === 'Facility / Department' && badge ?
+    'Full department name or abbreviation' : 'Optional';
    caption.append(input);
    const position = document.createElement('label');
    position.textContent = label + ' placement';
@@ -71,7 +88,7 @@
    group.append(row);
    return {label, row, input, select};
   });
-  const badgeRequest = badge ? addBadgeRequest(group) : null;
+  const geography = badge ? addGeography(group, draw) : null;
   const review = form.querySelector('.continue-customize');
   form.insertBefore(group, review || null);
   const proof = document.createElement('figure');
@@ -97,9 +114,12 @@
   }
   function marks() {
    const currentStyle = style();
-   return fields.filter(({label, input}) => input.value.trim() &&
+   const entries = fields.filter(({label, input}) => input.value.trim() &&
     (label !== 'EOW date' || eow() && supportedStyles.includes(currentStyle)))
     .map(({label, input, select}) => ({label, value: input.value.trim(), placement: select.value}));
+   const location = geography?.locationMark();
+   if (location) entries.push(location);
+   return entries;
   }
   function draw() {
    if (!proof.isConnected) return;
@@ -110,7 +130,7 @@
    const entries = marks();
    const sourceWidth = preview.tagName === 'IMG' ? preview.naturalWidth : preview.width;
    const sourceHeight = preview.tagName === 'IMG' ? preview.naturalHeight : preview.height;
-   proof.hidden = !entries.length || !sourceWidth || !sourceHeight ||
+   proof.hidden = !sourceWidth || !sourceHeight ||
     (preview.tagName === 'CANVAS' && !preview.dataset.previewEngine && !preview.dataset.personalizationSource);
    preview.classList.toggle('aj-combined-source', !proof.hidden);
    if (proof.hidden) return;
@@ -131,7 +151,8 @@
    } else {
     const originalSide = side() === 'Back' ? 1 : 0;
     const otherSide = 1 - originalSide;
-    const needsOther = entries.some(mark => boxes[mark.placement][0] === otherSide);
+    const needsOther = entries.some(mark => boxes[mark.placement][0] === otherSide) ||
+     otherSide === 0 && (geography?.approvedBadge() || ['Left chest','Right chest'].includes(geography?.emblem()?.placement));
     const catalog = window.AJGarments;
     const template = catalog.styles[currentStyle] ? currentStyle : 'T-shirt';
     const companion = needsOther ? image(catalog.image(template, otherSide ? 'back' : 'front')) : null;
@@ -158,8 +179,24 @@
      if (surface) context.fillText(index ? 'BACK' : 'FRONT', surface[0] + surface[2] / 2, canvas.height - 8);
     }
    }
+   const front = surfaces[0], back = surfaces[1];
+   const sleeve = front || back;
+   if (sleeve) paintFlag(context, sleeve, !front, currentStyle);
+   const emblem = geography?.emblem();
+   if (emblem) paintState(context, emblem, front, back);
+   const agencyBadge = geography?.approvedBadge();
+   if (agencyBadge && front) {
+    const art = image(new URL(agencyBadge.artwork, assetRoot).href);
+    if (art.naturalWidth) {
+     const [left, top, width, height] = front;
+     const size = Math.min(width, height) * .09;
+     const scale = Math.min(size / art.naturalWidth, size / art.naturalHeight);
+     const w = art.naturalWidth * scale, h = art.naturalHeight * scale;
+     context.drawImage(art, left + width * .36 - w / 2, top + height * .36 - h / 2, w, h);
+    }
+   }
    paint(context, entries, surfaces);
-   canvas.setAttribute('aria-label', 'Customized product. ' + entries.map(mark => mark.label + ': ' + mark.value + ', ' + mark.placement).join('; '));
+   canvas.setAttribute('aria-label', 'Customized product with U.S. flag on the wearer’s right shoulder. ' + entries.map(mark => mark.label + ': ' + mark.value + ', ' + mark.placement).join('; '));
    onProof?.(canvas);
   }
   group.addEventListener('input', () => {draw(); update?.()});
@@ -173,7 +210,7 @@
   draw();
   function details() {
    const entries = marks().map(mark => mark.label + ': ' + mark.value + ' · ' + mark.placement);
-   if (badgeRequest?.value.trim()) entries.push('Badge artwork requested: ' + badgeRequest.value.trim());
+   entries.push('U.S. flag: Wearer’s right shoulder, stars forward', ...(geography?.details() || []));
    return entries;
   }
   return {draw, details, snapshot: () => proof.hidden ? null : canvas.toDataURL('image/png')};
@@ -188,6 +225,17 @@
    connectedForm = form;
    const legacyName = [...form.querySelectorAll('#personal option')].find(option => option.value === 'Name');
    legacyName?.remove();
+   if (['law', 'doc'].includes(collection)) {
+    const legacyState = form.querySelector('#state');
+    if (legacyState) {
+     legacyState.value = 'None';
+     legacyState.closest('label').hidden = true;
+    }
+    [...form.querySelectorAll('#personal option')].find(option => option.value === 'Unit')?.remove();
+    const oldPersonal = form.querySelector('#personal');
+    if (oldPersonal?.options.length === 1) oldPersonal.closest('label').hidden = true;
+    form.dispatchEvent(new Event('change', {bubbles:true}));
+   }
    const note = [...form.querySelectorAll('.note')].find(node => node.textContent.startsWith('Only Name and Unit'));
    if (note) note.textContent = 'Use Garment personalization for independent name and rank placement.';
    const personalization = mount(form, {
@@ -225,55 +273,150 @@
   attach();
   new MutationObserver(attach).observe(screen, {subtree: true, childList: true});
  }
- const agencies = [
-  ['Morris Police Department, Illinois', 'Agency contact verified · Badge artwork pending', 'https://morrisil.org/department/police-department/'],
-  ['Grundy County Sheriff’s Office, Illinois', 'Agency listing verified · Badge artwork pending', 'https://www.ilsheriff.org/county/grundy/'],
-  ['Channahon Police Department, Illinois', 'Local agency contact verified · Badge approval pending', 'https://www.channahon.org/159/Police'],
-  ['Coal City Police Department, Illinois', 'Local agency contact verified · Badge approval pending', 'https://coalcity-il.gov/department/police-department/'],
-  ['Dwight Police Department, Illinois', 'Local agency contact verified · Badge approval pending', 'https://dwightillinois.org/village-departments/police/'],
-  ['Minooka Police Department, Illinois', 'Local agency contact verified · Badge approval pending', 'https://www.minooka.com/our-government/police-department/'],
-  ['Illinois State Police', 'Official emblem directive · Agency approval rules published', 'https://isp.illinois.gov/StaticFiles/docs/DepartmentDirectives/ADM-141%20DIR.pdf'],
-  ['Illinois Department of Corrections', 'Official emblem reference · Apparel artwork pending', 'https://my.ilga.gov/Documents/Reports/ReportsSubmitted/7050RSGAEmail15821RSGAAttachIDOC-Quarterly-Report-July-2026.pdf'],
-  ['Illinois Secretary of State Police', 'Official badge reference · Apparel artwork pending', 'https://www.ilsos.gov/content/dam/departments/police/lawupdate2425.pdf'],
-  ['Chicago Police Department', 'Official star reference · Apparel artwork pending', 'https://directives.chicagopolice.org/forms/CPD-20.006.pdf'],
-  ['California Highway Patrol', 'Official uniform insignia specification · Apparel artwork pending', 'https://www.chp.ca.gov/siteassets/policy/hpg/hpg-73.6-ch-4.pdf'],
-  ['Los Angeles Police Department', 'Official badge-use guidance · Agency approval required', 'https://lapdonlinestrgeacc.blob.core.usgovcloudapi.net/lapdonlinemedia/Media-Guide-21st-Century-Final-Approved-04.22.24-v2.pdf'],
-  ['New York City Police Department', 'City merchandise licensing program · Apparel artwork pending', 'https://www.nyc.gov/assets/globalpartners/downloads/pdf/NYC_Tourism%20Marketing_CMLP.pdf'],
-  ['Fire Department of the City of New York', 'Official licensed apparel examples · Apparel artwork pending', 'https://a856-citystore.nyc.gov/collections/fdny'],
- ];
- function addBadgeRequest(group) {
-  const teaser = document.createElement('p');
-  teaser.className = 'note';
-  const heading = document.createElement('strong');
-  heading.textContent = 'Official badge customization coming soon';
-  teaser.append(heading, ' · Availability depends on agency approval.');
-  const label = document.createElement('label');
-  label.textContent = 'Agency badge artwork request';
-  const input = document.createElement('input');
-  input.maxLength = 100;
-  input.placeholder = 'Select or enter an agency';
-  const list = document.createElement('datalist');
-  list.id = 'aj-badge-agencies';
-  input.setAttribute('list', list.id);
-  for (const [agency] of agencies) list.append(new Option(agency, agency));
+ function paintFlag(context, surface, back, style) {
+  const [left, top, width, height] = surface;
+  const flagWidth = Math.min(width, height) * (style === 'Tank Top' ? .047 : .095);
+  const flagHeight = flagWidth / 1.9;
+  const center = style === 'Tank Top' ? .36 : .23;
+  const x = left + width * (back ? 1 - center : center) - flagWidth / 2;
+  const y = top + height * (style === 'Tank Top' ? .27 : .34);
+  const stripe = flagHeight / 13;
+  const unionWidth = flagWidth * .4;
+  context.save();
+  context.translate(x, y);
+  for (let row = 0; row < 13; row++) {
+   context.fillStyle = row % 2 ? '#fff' : '#b31942';
+   context.fillRect(0, row * stripe, flagWidth, stripe);
+  }
+  context.fillStyle = '#0a3161';
+  context.fillRect(flagWidth - unionWidth, 0, unionWidth, stripe * 7);
+  context.fillStyle = '#fff';
+  for (let row = 0; row < 9; row++) {
+   for (let column = 0; column < (row % 2 ? 5 : 6); column++) {
+    const sx = flagWidth - unionWidth + unionWidth * (column + (row % 2 ? 1 : .5)) / 6;
+    const sy = stripe * 7 * (row + .5) / 9;
+    context.beginPath();
+    for (let point = 0; point < 10; point++) {
+     const angle = point * Math.PI / 5 - Math.PI / 2;
+     const radius = stripe * (point % 2 ? .16 : .38);
+     context.lineTo(sx + Math.cos(angle) * radius, sy + Math.sin(angle) * radius);
+    }
+    context.closePath();
+    context.fill();
+   }
+  }
+  context.restore();
+ }
+ function paintState(context, {code, placement}, front, back) {
+  const shape = window.AJStateOutlines?.[code];
+  const surface = front || (placement === 'Left shoulder' ? back : null);
+  if (!shape || !surface) return;
+  const [left, top, width, height] = surface;
+  const [x, y, w, h] = shape.box;
+  const center = placement === 'Right chest' ? .37 : placement === 'Left chest' ? .63 : front ? .77 : .23;
+  const scale = Math.min(width, height) * .073 / Math.max(w, h);
+  context.save();
+  context.translate(left + center * width, top + (placement === 'Left shoulder' ? .355 : .365) * height);
+  context.scale(scale, scale);
+  context.translate(-x - w / 2, -y - h / 2);
+  context.strokeStyle = '#fff';
+  context.lineWidth = 2 / scale;
+  context.lineJoin = 'round';
+  context.stroke(new Path2D(shape.path));
+  context.restore();
+ }
+ function addGeography(group, redraw) {
+  const block = document.createElement('fieldset');
+  const legend = document.createElement('legend');
+  legend.textContent = 'Agency location & insignia';
+  block.append(legend);
+  const controls = {};
+  for (const label of ['State', 'County', 'City / Town', 'State emblem placement', 'Official agency badge']) {
+   const wrapper = document.createElement('label');
+   wrapper.textContent = label;
+   const select = document.createElement('select');
+   wrapper.append(select);
+   block.append(wrapper);
+   controls[label] = select;
+  }
+  const {State:state, County:county, 'City / Town':city, 'State emblem placement':emblem, 'Official agency badge':badge} = controls;
+  const printLabel = document.createElement('label');
+  const print = document.createElement('input');
+  print.type = 'checkbox';
+  printLabel.append(print, ' Print selected county and city/town across the back shoulders');
+  block.append(printLabel);
   const status = document.createElement('p');
   status.className = 'note';
-  status.textContent = 'Optional. Badge artwork is confirmed by agency before it appears on a garment proof.';
-  input.addEventListener('input', () => {
-   const match = agencies.find(([agency]) => agency === input.value);
-   if (!match) {
-    status.textContent = input.value.trim() ? 'Agency artwork verification pending.' :
-     'Optional. Badge artwork is confirmed by agency before it appears on a garment proof.';
-    return;
-   }
-   const link = document.createElement('a');
-   link.href = match[2];
-   link.textContent = match[1];
-   status.replaceChildren(link);
-  });
-  label.append(input);
-  group.append(teaser, label, list, status);
-  return input;
+  status.setAttribute('role', 'status');
+  block.append(status);
+  group.append(block);
+  let geography = {};
+  const options = (select, placeholder, choices) => {
+   select.replaceChildren(new Option(placeholder, ''));
+   for (const [id, name] of choices) select.add(new Option(name, id));
+   select.disabled = !choices.length;
+  };
+  const sorted = items => items.sort((a, b) => a[1].localeCompare(b[1]));
+  const selectedCounty = () => geography[state.value]?.[2][county.value];
+  const locationMark = () => {
+   if (!print.checked || !selectedCounty()) return null;
+   const [countyName, places] = selectedCounty();
+   return {label: 'County / City', value: [places[city.value], countyName].filter(Boolean).join(', '), placement: shoulders};
+  };
+  function refreshBadges() {
+   const previous = badge.value;
+   const matching = approvedBadges.filter(item => item.approval && item.artwork &&
+    item.state === state.value && (!item.county || item.county === county.value) &&
+    (!item.city || item.city === city.value));
+   options(badge, matching.length ? 'Select approved artwork' : 'No approved artwork available',
+    sorted(matching.map(item => [item.id, item.name])));
+   if (matching.some(item => item.id === previous)) badge.value = previous;
+   const outside = state.value && !Object.keys(geography[state.value]?.[2] || {}).length;
+   status.textContent = outside ? 'County and city choices are currently limited to the Morris, Illinois area.' :
+    'Official badge customization coming soon. Artwork is listed as agencies approve it.';
+  }
+  function refreshCities() {
+   options(city, 'Select city / town', sorted(Object.entries(selectedCounty()?.[1] || {})));
+   refreshBadges();
+  }
+  function refreshCounties() {
+   options(county, 'Select county', sorted(Object.entries(geography[state.value]?.[2] || {}).map(([id,[name]])=>[id,name])));
+   const code = geography[state.value]?.[0];
+   options(emblem, 'No state emblem', window.AJStateOutlines?.[code] ?
+    ['Left shoulder','Left chest','Right chest'].map(name=>[name,name]) : []);
+   refreshCities();
+  }
+  options(state, 'Loading states…', []);
+  refreshCounties();
+  state.addEventListener('input', refreshCounties);
+  county.addEventListener('input', refreshCities);
+  city.addEventListener('input', refreshBadges);
+  loadScript('agency-geography.js?v=1').then(()=>{
+   geography = window.AJAgencyGeography;
+   options(state, 'Select state', sorted(Object.entries(geography).map(([id,[,name]])=>[id,name])));
+   refreshCounties();
+  }).catch(()=>{status.textContent='Location choices could not load. Reload this page to try again.'});
+  if (!window.AJStateOutlines) loadScript('state-outlines.js?v=1').then(()=>{
+   const code = geography[state.value]?.[0];
+   if (window.AJStateOutlines?.[code]) options(emblem, 'No state emblem', ['Left shoulder','Left chest','Right chest'].map(name=>[name,name]));
+   redraw();
+  }).catch(()=>{});
+  return {
+   locationMark,
+   emblem: () => emblem.value ? {code:geography[state.value]?.[0], placement:emblem.value} : null,
+   approvedBadge: () => approvedBadges.find(item=>item.id===badge.value),
+   details() {
+    const area = geography[state.value];
+    const district = selectedCounty();
+    return [
+     area && 'State: '+area[1],
+     district && 'County: '+district[0],
+     district?.[1][city.value] && 'City / Town: '+district[1][city.value],
+     emblem.value && 'State emblem: '+emblem.value,
+     this.approvedBadge()?.name && 'Approved agency badge: '+this.approvedBadge().name,
+    ].filter(Boolean);
+   },
+  };
  }
  window.AJServicePersonalization = {mount, connectProduct};
 })();

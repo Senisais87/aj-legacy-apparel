@@ -203,3 +203,7 @@ img.aj-studio-merch,#livePreview,.aj-preview-dialog img{background:var(--aj-merc
 .aj-groups-back:not([hidden]) + .aj-collection-banner { grid-template-columns: 1fr; min-height: auto; }
 .aj-groups-back:not([hidden]) + .aj-collection-banner img { display: none; }
 .aj-service-store #tabs[hidden], .aj-service-store .customizer [for="agency"][hidden] { display: none !important; }
+
+.aj-personalization-fields fieldset { display: grid; gap: .65rem; min-width: 0; margin: .8rem 0 0; }
+.aj-personalization-fields input[type="checkbox"] { width: auto; margin-right: .35rem; }
+.aj-dedicated-breed label[hidden] { display: none !important; }

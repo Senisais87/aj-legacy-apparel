@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 /* Refresh shared header stylesheet when a new storefront build is published. */
-const cssVersion='combined-personalization';
+const cssVersion='agency-geography';
 for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
  try{const u=new URL(link.href,document.baseURI);if(u.pathname.endsWith('/assets/storefront.css')){u.searchParams.set('v',cssVersion);if(link.href!==u.href)link.href=u.href;}}catch(_e){}
 }
@@ -437,7 +437,7 @@ if(window.AJStore){
     if(item.boardMerch){
      const live=boardControls(item,photo,form);
      if(/tee|hoodie|quarter-zip/i.test(item.title)){
-      loadPresentation('assets/service-personalization.js?v=3',()=>{
+      loadPresentation('assets/service-personalization.js?v=4',()=>{
        const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
        window.AJServicePersonalization.mount(form,{
         department:['law','doc','gym'].includes(actual),
@@ -465,7 +465,7 @@ if(window.AJStore){
    }else{
     store.openItem(item,index);
     if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
-     loadPresentation('assets/service-personalization.js?v=3',()=>{
+     loadPresentation('assets/service-personalization.js?v=4',()=>{
       window.AJServicePersonalization.connectProduct(custom, actual);
      });
     }
