@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 /* Refresh shared header stylesheet when a new storefront build is published. */
-const cssVersion='charcoal-trt-giving';
+const cssVersion='service-personalization';
 for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
  try{const u=new URL(link.href,document.baseURI);if(u.pathname.endsWith('/assets/storefront.css')){u.searchParams.set('v',cssVersion);if(link.href!==u.href)link.href=u.href;}}catch(_e){}
 }
@@ -415,7 +415,18 @@ if(window.AJStore){
     const form=document.getElementById('custom-form');
     document.getElementById('flow-product').textContent=family?.title||item.title;
     form.textContent=item.detail;
-    if(item.boardMerch)boardControls(item,photo,form);
+    if(item.boardMerch){
+     boardControls(item,photo,form);
+     if(/tee|hoodie|quarter-zip/i.test(item.title)){
+      loadPresentation('assets/service-personalization.js?v=1',()=>{
+       const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
+       window.AJServicePersonalization.mount(form,{
+        service:['law','doc'].includes(actual)||boardId==='their-watch',
+        flag:()=>Boolean(boardStripes[boardId]), style:()=>style, preview:photo, standalone:true
+       });
+      });
+     }
+    }
     if(family){
      const label=document.createElement('label');
      label.textContent=family.label;
@@ -432,6 +443,11 @@ if(window.AJStore){
     store.showPage('customize');
    }else{
     store.openItem(item,index);
+    if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
+     loadPresentation('assets/service-personalization.js?v=1',()=>{
+      window.AJServicePersonalization.connectProduct(custom, actual);
+     });
+    }
     if(item.img==='selected-gym-board-aj-legacy-training-tee'){
      const color=document.querySelector('#custom-form #color');
      if(color){color.value='Gray';color.dispatchEvent(new Event('change',{bubbles:true}));}
@@ -517,6 +533,16 @@ if(window.AJStore){
    if(button){button.onclick();if(k==='first'&&params.get('garment')==='hoodie')window.setGarment('hoodie');preview.hidden=false;grid.hidden=true;if(tabs)tabs.hidden=true;
     const back=document.createElement('a');back.className='aj-related';back.href=location.pathname+'?category='+encodeURIComponent(category);back.textContent='← Back to individual designs';wrap.prepend(back);
     preview.classList.add('aj-service-preview','aj-dedicated-service');disabledCheckout(preview.lastElementChild);
+    if(k==='first'){
+     const refresh=new MutationObserver(()=>personalization.draw());
+     const styles=document.getElementById('types');
+     const personalization=window.AJServicePersonalization.mount(preview.lastElementChild,{
+      service:false, flag:()=>false,
+      style:()=>styles?.querySelector('[aria-pressed="true"]')?.textContent==='Hoodie'?'Hoodie':'T-shirt',
+      preview:preview.firstElementChild, standalone:true
+     });
+     if(styles)refresh.observe(styles,{childList:true,subtree:true,attributes:true});
+    }
    }else preview.hidden=true;
   }else{
    preview.hidden=true;grid.classList.add('aj-individual-designs');
