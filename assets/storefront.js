@@ -397,7 +397,7 @@ function loadPresentation(file,ready){
  document.head.append(script);
 }
 
-loadPresentation('assets/studio-merch.js?v=1',()=>{
+loadPresentation('assets/studio-merch.js?v=2',()=>{
  const studio=window.AJStudioMerch;
  document.dispatchEvent(new Event('aj-studio-merch-ready'));
  const store=window.AJStore;
@@ -432,7 +432,7 @@ loadPresentation('assets/studio-merch.js?v=1',()=>{
   if(detail)studio.watch(detail,'#selected-product-image img, figure img');
  }else{
   const main=document.querySelector('main');
-  if(main)studio.watch(main,'#grid .tile img, #k9-products .tile img, #individual-proof, .aj-dedicated-service #preview, .aj-individual-designs > img');
+  if(main)studio.watch(main,'#grid .tile img, #k9-products .tile img, #individual-proof, .aj-dedicated-service #preview, .aj-dedicated-breed #preview, .aj-individual-designs > img');
  }
  loadPresentation('assets/merch-preview.js?v=1');
 });
