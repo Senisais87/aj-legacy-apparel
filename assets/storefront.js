@@ -58,7 +58,18 @@ chrome.querySelector('.aj-navigation').addEventListener('click',event=>{
 window.addEventListener('hashchange',scrollToSection);
 window.addEventListener('load',scrollToSection);
 const banner=chrome.querySelector('.aj-collection-banner');
-function setCollection(k){const c=collections.find(c=>c[0]===k)||(k==='limited'?['limited','Limited Edition','assets/events/legacy-strength-2027.png','Legacy of Strength · February 20, 2027','#1769AA']:null);banner.hidden=!c;if(!c)return;banner.style.setProperty('--collection-accent',c[4]);banner.querySelector('h1').textContent=c[1]+' Collection';banner.querySelector('p').textContent=c[3];banner.querySelector('img').src=url(c[2]);banner.querySelector('img').alt=c[1]+' merchandise';chrome.querySelectorAll('[data-collection]').forEach(a=>{a.classList.toggle('selected',a.dataset.collection===k);if(a.dataset.collection===k)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});}
+const catalogNotice=document.createElement('p');
+catalogNotice.className='aj-prelaunch';
+catalogNotice.hidden=true;
+banner.after(catalogNotice);
+function showCatalogNotice(collection){
+ catalogNotice.hidden=!collection;
+ catalogNotice.textContent=collection==='law'
+  ?'Prelaunch catalog · Ordering is closed. The badge and handcuffs are display props.'
+  :'Prelaunch catalog · Ordering is closed. Choose a product to see the design and garment options.';
+}
+
+function setCollection(k){showCatalogNotice(k);const c=collections.find(c=>c[0]===k)||(k==='limited'?['limited','Limited Edition','assets/events/legacy-strength-2027.png','Legacy of Strength · February 20, 2027','#1769AA']:null);banner.hidden=!c;if(!c)return;banner.style.setProperty('--collection-accent',c[4]);banner.querySelector('h1').textContent=c[1]+' Collection';banner.querySelector('p').textContent=c[3];banner.querySelector('img').src=url(c[2]);banner.querySelector('img').alt=c[1]+' merchandise';chrome.querySelectorAll('[data-collection]').forEach(a=>{a.classList.toggle('selected',a.dataset.collection===k);if(a.dataset.collection===k)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});}
 function disabledCheckout(parent){if(parent.querySelector('.aj-checkout'))return;const box=document.createElement('div');box.className='aj-checkout';box.innerHTML='<p>COMING SOON</p><button type="button" disabled>Checkout unavailable during prelaunch</button><small>Family & supplier review · No orders or payments</small>';parent.append(box)}
 const boardMerch={
  law:[
@@ -267,6 +278,11 @@ if(window.AJStore){
     store.showPage('customize');
    }else{
     store.openItem(item,index);
+    if(item.img==='selected-gym-board-aj-legacy-training-tee'){
+     const color=document.querySelector('#custom-form #color');
+     if(color){color.value='Gray';color.dispatchEvent(new Event('change',{bubbles:true}));}
+    }
+
     if(item.side==='Back'){
      const placement=document.getElementById('design-side');
      placement.value=item.side;
