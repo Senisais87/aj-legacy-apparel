@@ -107,15 +107,49 @@ if(window.AJStore){
    }
   }
  }
+ if(actual==='gym'){
+  const boardProducts=[
+   ['discipline-builds-freedom','Discipline Builds Freedom Hoodie','Hoodie','Back'],
+   ['iron-sharpens-iron','Iron Sharpens Iron Training Tee','T-shirt','Front'],
+   ['persevere','Persevere Hoodie','Hoodie','Front'],
+   ['strength-through-christ','Strength Through Christ Training Tee','T-shirt','Back'],
+   ['aj-legacy-training-tee','AJ Legacy Training Tee','T-shirt','Front'],
+   ['aj-legacy-training-cap','AJ Legacy Training Cap'],
+   ['thin-blue-line-training-cap','Thin Blue Line Training Cap'],
+   ['aj-legacy-shaker','AJ Legacy Shaker Bottle'],
+  ];
+  for(const [key,title,style,side] of boardProducts){
+   const img='selected-gym-board-'+key;
+   store.registerArtwork(img,url('assets/gym-board/'+key+'.webp'));
+   store.lines.gym.push({img,title,style,side,flag:'none',concept:Boolean(style),accessory:!style,
+    detail:style?'Individual design from the Gym Attire collection banner.':'Individual detail from the Gym Attire collection banner.'});
+  }
+ }
  if(actual&&store.lines[actual]){
   store.openLine(actual);setCollection(key);document.body.dataset.activeCollection=key;
   // The legacy renderer updates hashes. Keep the explicit route authoritative.
   history.replaceState(null,'',url('index.html?'+params.toString()));
   const entries=store.lines[actual];
   if(params.has('product')&&Number.isInteger(Number(params.get('product')))&&entries[Number(params.get('product'))]){
-   const index=Number(params.get('product'));store.openItem(entries[index],index);
+   const index=Number(params.get('product')),item=entries[index];
+   if(item.accessory){
+    const photo=document.createElement('img');
+    photo.src=grid.children[index].querySelector('img').src;
+    photo.alt=item.title;
+    document.getElementById('selected-product-image').replaceChildren(photo);
+    document.getElementById('flow-product').textContent=item.title;
+    document.getElementById('custom-form').textContent=item.detail;
+    store.showPage('customize');
+   }else{
+    store.openItem(item,index);
+    if(item.side==='Back'){
+     const placement=document.getElementById('design-side');
+     placement.value=item.side;
+     placement.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+   }
    // The shared placement studio does not have these artwork files in its design picker.
-   if(entries[index].img.startsWith('selected-gym-')){
+   if(item.img.startsWith('selected-gym-')){
     const studioLink=document.getElementById('interactive-studio-link');
     if(studioLink)studioLink.hidden=true;
    }
@@ -128,6 +162,9 @@ if(window.AJStore){
    shell.append(center,controls);custom.append(shell);
    history.replaceState(null,'',url('index.html?'+params.toString()));
   }else{
+   for(const [index,item] of entries.entries()){
+    if(item.accessory)grid.children[index].querySelector('small').textContent='View product';
+   }
    grid.addEventListener('click',event=>{const tile=event.target.closest('.product-tile');if(!tile)return;event.stopImmediatePropagation();const index=[...grid.children].indexOf(tile);location.assign(collectionURL(key,sub)+'&product='+index)},true);
    if(actual==='law'||actual==='doc'){
     const groups=document.createElement('nav');groups.className='aj-subline-links';groups.setAttribute('aria-label','Choose a sub-line');
