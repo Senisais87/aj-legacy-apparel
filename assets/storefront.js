@@ -197,6 +197,24 @@ if(window.AJStore){
   store.registerArtwork(img,boardImage(id));
   store.lines[actual].push({img,title,accessory:true,garmentGroup:'board',boardMerch:true,detail:'Individual merchandise preview from the collection image.'});
  }
+ if(actual==='doc'){
+  const items=store.lines.doc;
+  const [department,matthew,,headwear]=items;
+  const splitLine=(family,match,title)=>{
+   const options=family.variations.filter(match);
+   if(!options.length)return;
+   family.variations=family.variations.filter(option=>!match(option));
+   items.push({...options[0],title,variations:options.length>1?options:undefined});
+  };
+  splitLine(matthew,item=>item.img.startsWith('shirt2_')&&item.flag==='orange','TRT — Matthew 5:9');
+  matthew.title='DOC — Matthew 5:9';
+  matthew.variations=undefined;
+  splitLine(department,item=>item.img.startsWith('shirt3_'),'Juvenile Detention — Department Flag');
+  splitLine(department,item=>item.img.startsWith('shirt4_'),'Rehabilitation / Reentry — Department Flag');
+  splitLine(headwear,item=>item.img==='hatdept2','TRT — Headwear');
+  splitLine(headwear,item=>item.img==='hatdept3','Juvenile Detention — Headwear');
+  splitLine(headwear,item=>item.img==='hatdept4','Rehabilitation / Reentry — Headwear');
+ }
  if(actual&&store.lines[actual]){
   store.openLine(actual);setCollection(key);document.body.dataset.activeCollection=key;
   // The legacy renderer updates hashes. Keep the explicit route authoritative.
@@ -213,7 +231,13 @@ if(window.AJStore){
    if(family)tile.querySelector('strong').textContent=family.title;
    if(item.garmentGroup==='logo'&&item.style==='Crewneck')tile.querySelector('strong').textContent='AJ Legacy Shield Tops';
    if(item.garmentGroup==='lower'&&item.style==='Shorts')tile.querySelector('strong').textContent='AJ Legacy Shield Bottoms';
-   if(variantIds.has(boardId)||item.garmentGroup==='logo'&&item.style!=='Crewneck'||item.garmentGroup==='lower'&&item.style!=='Shorts')tile.remove();
+   if(item.flag==='orange'&&actual==='doc'&&!item.boardMerch){
+    // The main DOC thumbnail renderer defaults to silver. The source proof carries the TRT orange stripe.
+    const unitImage=image.cloneNode(false);
+    unitImage.src=assets[item.img];
+    image.replaceWith(unitImage);
+   }
+   if(boardId==='trt-cap'||variantIds.has(boardId)||item.garmentGroup==='logo'&&item.style!=='Crewneck'||item.garmentGroup==='lower'&&item.style!=='Shorts')tile.remove();
   }
   if(params.has('product')&&Number.isInteger(Number(params.get('product')))&&entries[Number(params.get('product'))]){
    const index=Number(params.get('product')),item=entries[index];
@@ -284,7 +308,7 @@ if(window.AJStore){
     const options=actual==='law'?[['all','All Law Enforcement designs'],['k9','K9 / Canine']]:[['all','All DOC designs'],['trt','Tactical Response Team (TRT)']];
     for(const [id,label] of options){const anchor=document.createElement('a');anchor.textContent=label;anchor.href=id==='k9'?url('k9-collection.html'):collectionURL(key,id==='all'?null:id);groups.append(anchor)}
     grid.before(groups);
-    if(sub==='trt')for(const [index,tile] of tiles.entries())tile.hidden=!/TRT|tactical response/i.test(entries[index].title+' '+(entries[index].detail||''));
+    if(sub==='trt')for(const [index,tile] of tiles.entries())tile.hidden=!/TRT|tactical response/i.test(entries[index].title);
    }
   }
  }else{store.showPage('lines');setCollection(null)}
