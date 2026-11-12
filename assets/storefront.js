@@ -60,6 +60,62 @@ window.addEventListener('load',scrollToSection);
 const banner=chrome.querySelector('.aj-collection-banner');
 function setCollection(k){const c=collections.find(c=>c[0]===k)||(k==='limited'?['limited','Limited Edition','assets/events/legacy-strength-2027.png','Legacy of Strength · February 20, 2027','#1769AA']:null);banner.hidden=!c;if(!c)return;banner.style.setProperty('--collection-accent',c[4]);banner.querySelector('h1').textContent=c[1]+' Collection';banner.querySelector('p').textContent=c[3];banner.querySelector('img').src=url(c[2]);banner.querySelector('img').alt=c[1]+' merchandise';chrome.querySelectorAll('[data-collection]').forEach(a=>{a.classList.toggle('selected',a.dataset.collection===k);if(a.dataset.collection===k)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});}
 function disabledCheckout(parent){if(parent.querySelector('.aj-checkout'))return;const box=document.createElement('div');box.className='aj-checkout';box.innerHTML='<p>COMING SOON</p><button type="button" disabled>Checkout unavailable during prelaunch</button><small>Family & supplier review · No orders or payments</small>';parent.append(box)}
+const boardMerch={
+ law:[
+  ["shield-hoodie", "AJ Shield Hoodie"],
+  ["vertical-flag-hoodie", "Vertical Thin Blue Line Flag Hoodie"],
+  ["badge-story", "Behind Every Badge Training Tee"],
+  ["honor-service-sacrifice", "Honor Service Sacrifice Tee"],
+  ["peacemakers-tee", "Blessed Are the Peacemakers Gray Tee"],
+  ["blue-line-quarter-zip", "Navy Thin Blue Line Quarter-Zip"],
+  ["service-above-self", "Service Above Self Tee"],
+  ["law-enforcement-hoodie", "Law Enforcement Wordmark Hoodie"],
+  ["shield-joggers", "AJ Shield Joggers"],
+  ["shield-shorts", "AJ Shield Shorts"],
+  ["shield-trucker", "AJ Shield Trucker Cap"],
+  ["thin-blue-line-cap", "Thin Blue Line Cap"],
+  ["camo-shield-cap", "Camo AJ Shield Cap"],
+ ],
+ doc:[
+  ["corrections-flag-hoodie", "Vertical Corrections Flag Hoodie"],
+  ["trt-tee", "Corrections Tactical Response Team Tee"],
+  ["correctional-officer-tee", "Correctional Officer Gray Tee"],
+  ["doc-shield-hoodie", "DOC Shield Hoodie"],
+  ["orange-line-flag-top", "Thin Orange Line Flag Top"],
+  ["doc-joggers", "DOC Shield Joggers"],
+  ["doc-shield-cap", "AJ Shield Corrections Cap"],
+  ["trt-cap", "TRT Cap"],
+  ["doc-tumbler", "AJ Corrections Tumbler"],
+  ["orange-line-patch", "Thin Orange Line Flag Patch"],
+ ],
+ limited:[
+  ["their-watch", "Their Watch Has Ended Memorial Tee"],
+  ["memorial-shield-hoodie", "Memorial AJ Shield Hoodie"],
+  ["forever-27", "Andrew John Faught Forever 27 Memorial Tee"],
+  ["psalm-34", "Psalm 34:18 Memorial Hoodie"],
+  ["memorial-patch-cap", "Memorial Leather Patch Cap"],
+  ["memorial-line-cap", "Memorial Thin Blue Line Cap"],
+  ["memorial-shield-cap", "Memorial AJ Shield Cap"],
+  ["memorial-tumbler", "Memorial AJ Shield Tumbler"],
+  ["memorial-plaque", "Courage Service Sacrifice Legacy Plaque"],
+ ],
+ first:[
+  ["responder-cap", "AJ Legacy First Responder Cap"],
+  ["fire-cap", "Fire & Rescue Cap"],
+  ["ems-cap", "EMS / Paramedic Cap"],
+  ["dispatch-cap", "911 Dispatch Cap"],
+ ],
+};
+const boardImage=id=>url('assets/merch-individual/'+id+'.webp');
+function merchTile(title,source,href){
+ const tile=document.createElement('a');
+ tile.className='tile';tile.href=href;
+ const image=document.createElement('img');
+ image.src=source;image.alt=title;image.loading='lazy';
+ const heading=document.createElement('h3');heading.textContent=title;
+ tile.append(image,heading);
+ return tile;
+}
 if(window.AJStore){
  document.body.classList.add('aj-store');
  document.getElementById('back-lines').textContent='← Back to collections';
@@ -125,11 +181,21 @@ if(window.AJStore){
     detail:style?'Individual design from the Gym Attire collection banner.':'Individual detail from the Gym Attire collection banner.'});
   }
  }
+ for(const [id,title] of boardMerch[actual]||[]){
+  const img='board-merch-'+id;
+  store.registerArtwork(img,boardImage(id));
+  store.lines[actual].push({img,title,accessory:true,garmentGroup:'board',boardMerch:true,detail:'Individual merchandise preview from the collection image.'});
+ }
  if(actual&&store.lines[actual]){
   store.openLine(actual);setCollection(key);document.body.dataset.activeCollection=key;
   // The legacy renderer updates hashes. Keep the explicit route authoritative.
   history.replaceState(null,'',url('index.html?'+params.toString()));
   const entries=store.lines[actual];
+  for(const [index,item] of entries.entries()){
+   const tile=grid.children[index],image=tile.querySelector('img');
+   const gymMockup=item.img.startsWith('selected-gym-')&&!item.accessory;
+   if(gymMockup)image.src=boardImage(item.img);
+  }
   if(params.has('product')&&Number.isInteger(Number(params.get('product')))&&entries[Number(params.get('product'))]){
    const index=Number(params.get('product')),item=entries[index];
    if(item.accessory){
@@ -189,14 +255,45 @@ if(window.AJStore){
   // Capture before inline legacy handlers so category and product choices open a new screen.
   if(tabs)tabs.addEventListener('click',event=>{const button=event.target.closest('button');if(!button)return;event.stopImmediatePropagation();const code=button.getAttribute('onclick')||'';const match=code.match(/group='([^']+)'/);if(match)location.assign(location.pathname+'?category='+encodeURIComponent(match[1]))},true);
   grid.addEventListener('click',event=>{const tile=event.target.closest('.tile');if(!tile)return;const button=tile.querySelector('button');if(!button)return;event.stopImmediatePropagation();const match=(button.getAttribute('onclick')||'').match(/item='([^']+)'/);if(match)location.assign(location.pathname+'?category='+encodeURIComponent(category)+'&product='+encodeURIComponent(match[1]))},true);
+  if(k==='first'&&params.has('merch')){
+   const entry=boardMerch.first.find(([id])=>id===params.get('merch'));
+   if(entry){
+    const [id,title]=entry;
+    const product=document.createElement('section');
+    product.className='aj-individual-designs';
+    const back=document.createElement('a');back.href=location.pathname+'?category='+encodeURIComponent(category);back.textContent='← Back to individual designs';
+    const heading=document.createElement('h1');heading.textContent=title;
+    const image=document.createElement('img');image.src=boardImage(id);image.alt=title;image.style.maxWidth='100%';
+    product.append(back,heading,image);
+    wrap.replaceChildren(product);
+    disabledCheckout(product);
+    return;
+   }
+  }
   if(requested){
    const models=wrap.querySelector('.modelgrid');if(models){models.hidden=true;if(models.previousElementSibling?.tagName==='H2')models.previousElementSibling.hidden=true;if(models.nextElementSibling)models.nextElementSibling.hidden=true}
    const button=[...grid.querySelectorAll('button')].find(button=>(button.getAttribute('onclick')||'').includes("item='"+requested+"'"));
-   if(button){button.onclick();preview.hidden=false;grid.hidden=true;if(tabs)tabs.hidden=true;
+   if(button){button.onclick();if(k==='first'&&params.get('garment')==='hoodie')window.setGarment('hoodie');preview.hidden=false;grid.hidden=true;if(tabs)tabs.hidden=true;
     const back=document.createElement('a');back.className='aj-related';back.href=location.pathname+'?category='+encodeURIComponent(category);back.textContent='← Back to individual designs';wrap.prepend(back);
     preview.classList.add('aj-service-preview','aj-dedicated-service');disabledCheckout(preview.lastElementChild);
    }else preview.hidden=true;
-  }else{preview.hidden=true;grid.classList.add('aj-individual-designs')}
+  }else{
+   preview.hidden=true;grid.classList.add('aj-individual-designs');
+   if(k==='first'){
+    for(const tile of [...grid.children]){
+     const source=tile.querySelector('img');
+     const id=(tile.querySelector('button')?.getAttribute('onclick')||'').match(/item='([^']+)'/)?.[1];
+     if(!id||!source)continue;
+     const destination=location.pathname+'?category='+encodeURIComponent(category)+'&product='+encodeURIComponent(id)+'&garment=hoodie';
+     const hoodie=new URL(source.src);hoodie.pathname=hoodie.pathname.replace(/-tee\.(jpg|png)$/,'-hoodie.$1');
+     tile.after(merchTile(tile.querySelector('h3').textContent+' — Hoodie',hoodie.href,destination));
+    }
+    const capId={fire:'fire-cap',ems:'ems-cap',dispatch:'dispatch-cap'}[category];
+    for(const [id,title] of boardMerch.first.filter(([id])=>id===capId||id==='responder-cap')){
+     grid.append(merchTile(title,boardImage(id),location.pathname+'?category='+encodeURIComponent(category)+'&merch='+id));
+    }
+   }
+  }
  }
  const breedLayout=document.querySelector('.layout');
  if(document.getElementById('breed')&&breedLayout)breedLayout.classList.add('aj-dedicated-breed');
