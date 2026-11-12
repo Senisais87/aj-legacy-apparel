@@ -2,12 +2,60 @@
 (()=>{
 'use strict';
 /* Refresh shared header stylesheet when a new storefront build is published. */
-const cssVersion='studio-merch';
+const cssVersion='memorial-photos';
 for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
  try{const u=new URL(link.href,document.baseURI);if(u.pathname.endsWith('/assets/storefront.css')){u.searchParams.set('v',cssVersion);if(link.href!==u.href)link.href=u.href;}}catch(_e){}
 }
 
 const root=new URL('../',document.currentScript.src),url=p=>new URL(p,root).href;
+
+const memorialGallery=document.querySelector('#memorial .legacy-photo-grid');
+if(memorialGallery){
+ const sections=document.createElement('div');
+ sections.className='aj-memorial-photo-groups';
+ function gallery(title,featured=false){
+  const section=document.createElement('section');
+  section.className='aj-memorial-photo-group';
+  const heading=document.createElement('h3');
+  heading.textContent=title;
+  const grid=document.createElement('div');
+  grid.className='legacy-photo-grid'+(featured?' aj-memorial-photo-feature':'');
+  section.append(heading,grid);
+  sections.append(section);
+  return grid;
+ }
+ const family=gallery('Family, Football & Fitness');
+ const service=gallery('Drew’s Service & Remembrance',true);
+ const policeWeek=gallery('Police Week & Remembrance');
+ for(const [file,title,caption,alt] of [
+  ['drew-academy-graduation.webp','Academy Graduation','Drew in uniform on the day he graduated from the academy.','Drew standing in uniform outside on academy graduation day'],
+  ['drew-teammate-training.webp','Training Together','Drew training alongside his best friend and teammate.','Drew and his teammate training outdoors'],
+  ['drew-idoc-academy-memorial.webp','At the IDOC Memorial','Drew at the Illinois Department of Corrections memorial on academy graduation day.','Drew in uniform at the Illinois Department of Corrections fallen officers memorial'],
+  ['faught-mourning-band.webp','Honoring Fallen Officers','A mourning band bearing Drew’s name shows one way the Department and others honor fallen officers.','Illinois Department of Corrections badge with a black mourning band reading Faught']
+ ]){
+  const figure=document.createElement('figure');
+  figure.className='legacy-photo';
+  const photo=document.createElement('img');
+  photo.src=url('memorial-images/'+file);
+  photo.alt=alt;
+  photo.loading='lazy';
+  photo.decoding='async';
+  const text=document.createElement('figcaption');
+  const label=document.createElement('strong');
+  label.textContent=title;
+  text.append(label,caption);
+  figure.append(photo,text);
+  service.append(figure);
+ }
+ for(const photo of [...memorialGallery.children]){
+  const caption=photo.querySelector('figcaption')?.textContent||'';
+  if(/police week|fallen officers|candlelight vigil|washington/i.test(caption))policeWeek.append(photo);
+  else if(/Tactical Response Team coworkers/i.test(caption))service.append(photo);
+  else family.append(photo);
+ }
+ memorialGallery.replaceWith(sections);
+}
+
 const collections=[['law','Law Enforcement','line-images/law-enforcement.jpg','Honor the commitment. Carry the legacy.','#1769AA'],['doc','Department of Corrections','line-images/corrections.jpg','Strength behind the walls. Honor beyond them.','#D7D9DC'],['first','First Responder','assets/first-responders/collection-group.jpg','Fire & Rescue · EMS / Paramedics · Dispatch · Water Rescue','#F47721'],['gym','Gym Attire','line-images/athletics.jpg','Built with purpose. Earned with every rep.','#F47721'],['memorial','Memorial','line-images/memorial.jpg','In memory of Andrew John Faught. A legacy that lives on.','#1769AA']];
 const link=k=>k==='first'?url('assets/first-responders/index.html'):url('index.html?collection='+k);
 /* Remove obsolete header DOM instead of merely hiding it. */
