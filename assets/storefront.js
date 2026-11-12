@@ -98,6 +98,7 @@ const boardMerch={
   ["memorial-shield-cap", "Memorial AJ Shield Cap"],
   ["memorial-tumbler", "Memorial AJ Shield Tumbler"],
   ["memorial-plaque", "Courage Service Sacrifice Legacy Plaque"],
+  ["memorial-chest-logo-tee", "Memorial AJ Legacy Chest Logo Tee"],
  ],
  gym:[
   ["gym-chest-logo-tee","AJ Legacy Black Chest Logo Training Tee"],
