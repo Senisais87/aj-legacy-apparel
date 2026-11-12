@@ -4,8 +4,8 @@
  const column=document.querySelector('.aj-dedicated-customizer .aj-preview-column, .aj-dedicated-service > div:first-child')
   || document.getElementById('livePreview')?.parentElement;
  if(!column || column.closest('[hidden]'))return;
- const getPreview=()=>[...column.querySelectorAll('#garment-preview canvas, #livePreview, #selected-product-image img, #individual-proof, #preview')]
-  .find(image=>!image.closest('[hidden], details:not([open])'));
+ const getPreview=()=>[...column.querySelectorAll('.aj-personalization-proof canvas, #garment-preview canvas, #livePreview, #selected-product-image img, #individual-proof, #preview')]
+  .find(image=>!image.closest('[hidden], .aj-combined-source, details:not([open])'));
  if(!getPreview())return;
 
  const enlarge=document.createElement('button');

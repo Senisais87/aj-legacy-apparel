@@ -198,3 +198,8 @@ img.aj-studio-merch,#livePreview,.aj-preview-dialog img{background:var(--aj-merc
 .aj-personalization-fields input, .aj-personalization-fields select { width: 100%; }
 .aj-personalization-proof { margin: 1rem 0; }
 .aj-personalization-proof canvas { display: block; width: 100%; height: auto; }
+.aj-collection-strip[hidden], .aj-groups-back[hidden], .aj-combined-source { display: none !important; }
+.aj-groups-back { display: inline-block; margin: 1rem 1.5rem; }
+.aj-groups-back:not([hidden]) + .aj-collection-banner { grid-template-columns: 1fr; min-height: auto; }
+.aj-groups-back:not([hidden]) + .aj-collection-banner img { display: none; }
+.aj-service-store #tabs[hidden], .aj-service-store .customizer [for="agency"][hidden] { display: none !important; }

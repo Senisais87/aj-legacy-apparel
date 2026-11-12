@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 /* Refresh shared header stylesheet when a new storefront build is published. */
-const cssVersion='service-personalization';
+const cssVersion='combined-personalization';
 for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
  try{const u=new URL(link.href,document.baseURI);if(u.pathname.endsWith('/assets/storefront.css')){u.searchParams.set('v',cssVersion);if(link.href!==u.href)link.href=u.href;}}catch(_e){}
 }
@@ -118,6 +118,13 @@ chrome.querySelector('.aj-navigation').addEventListener('click',event=>{
 window.addEventListener('hashchange',scrollToSection);
 window.addEventListener('load',scrollToSection);
 const banner=chrome.querySelector('.aj-collection-banner');
+const groupStrip=chrome.querySelector('.aj-collection-strip');
+const groupsBack=document.createElement('a');
+groupsBack.className='aj-groups-back';
+groupsBack.href=url('index.html#collection-navigation');
+groupsBack.textContent='← Back to groups';
+groupsBack.hidden=true;
+banner.before(groupsBack);
 const catalogNotice=document.createElement('p');
 catalogNotice.className='aj-prelaunch';
 catalogNotice.hidden=true;
@@ -129,7 +136,7 @@ function showCatalogNotice(collection){
   :'Prelaunch catalog · Ordering is closed. Choose a product to see the design and garment options.';
 }
 
-function setCollection(k){showCatalogNotice(k);const c=collections.find(c=>c[0]===k)||(k==='limited'?['limited','Limited Edition','assets/events/legacy-strength-2027.png','Legacy of Strength · February 20, 2027','#1769AA']:null);banner.hidden=!c;if(!c)return;banner.style.setProperty('--collection-accent',c[4]);banner.querySelector('h1').textContent=c[1]+' Collection';banner.querySelector('p').textContent=c[3];banner.querySelector('img').src=url(c[2]);banner.querySelector('img').alt=c[1]+' merchandise';chrome.querySelectorAll('[data-collection]').forEach(a=>{a.classList.toggle('selected',a.dataset.collection===k);if(a.dataset.collection===k)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});}
+function setCollection(k){groupStrip.hidden=Boolean(k);groupsBack.hidden=!k;showCatalogNotice(k);const c=collections.find(c=>c[0]===k)||(k==='limited'?['limited','Limited Edition','assets/events/legacy-strength-2027.png','Legacy of Strength · February 20, 2027','#1769AA']:null);banner.hidden=!c;if(!c)return;banner.style.setProperty('--collection-accent',c[4]);banner.querySelector('h1').textContent=c[1]+' Collection';banner.querySelector('p').textContent=c[3];banner.querySelector('img').src=url(c[2]);banner.querySelector('img').alt=c[1]+' merchandise';chrome.querySelectorAll('[data-collection]').forEach(a=>{a.classList.toggle('selected',a.dataset.collection===k);if(a.dataset.collection===k)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});}
 function disabledCheckout(parent){if(parent.querySelector('.aj-checkout'))return;const box=document.createElement('div');box.className='aj-checkout';box.innerHTML='<p>COMING SOON</p><button type="button" disabled>Checkout unavailable during prelaunch</button><small>Family & supplier review · No orders or payments</small>';parent.append(box)}
 const boardMerch={
  law:[
@@ -181,6 +188,8 @@ const boardMerch={
   ["dispatch-cap", "911 Dispatch Cap"],
  ],
 };
+const memorialEow=new Set(['their-watch','memorial-shield-hoodie','psalm-34','memorial-chest-logo-tee','gym-chest-logo-tee']);
+const boardBack=new Set(['vertical-flag-hoodie','corrections-flag-hoodie','their-watch','psalm-34']);
 const boardImage=id=>url('assets/merch-individual/'+id+'.webp');
 const stripeColors={
  'Blue':'#1769aa','Silver / gray':'#a6a8ab','Orange':'#f47721','Red':'#c8242b',
@@ -239,6 +248,7 @@ function boardControls(item,photo,form){
   const ctx=canvas.getContext('2d',{willReadFrequently:true});
   ctx.drawImage(source,0,0);
   if(stripe&&select.value.toLowerCase()!==stripe[0])window.AJPreviewStripes.paint(ctx,stripe,[stripeColors[select.value]]);
+  canvas.dataset.personalizationSource='garment';
   if(personal?.value.trim()){
    ctx.font='700 '+Math.round(canvas.width*.019)+'px system-ui';
    ctx.fillStyle='#fff';
@@ -254,6 +264,7 @@ function boardControls(item,photo,form){
   const cutout=window.AJStudioMerch.source(source.src);
   if(cutout)source.src=cutout;
  },{once:true});
+ return canvas;
 }
 
 const boardFamilies={
@@ -416,13 +427,15 @@ if(window.AJStore){
     document.getElementById('flow-product').textContent=family?.title||item.title;
     form.textContent=item.detail;
     if(item.boardMerch){
-     boardControls(item,photo,form);
+     const live=boardControls(item,photo,form);
      if(/tee|hoodie|quarter-zip/i.test(item.title)){
-      loadPresentation('assets/service-personalization.js?v=1',()=>{
+      loadPresentation('assets/service-personalization.js?v=2',()=>{
        const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
        window.AJServicePersonalization.mount(form,{
-        service:['law','doc'].includes(actual)||boardId==='their-watch',
-        flag:()=>Boolean(boardStripes[boardId]), style:()=>style, preview:photo, standalone:true
+        department:['law','doc','gym'].includes(actual),
+        badge:['law','doc'].includes(actual),
+        eow:()=>actual==='limited'?memorialEow.has(boardId):['law','doc'].includes(actual)&&Boolean(boardStripes[boardId]),
+        style:()=>style, preview:live||photo, side:()=>boardBack.has(boardId)?'Back':'Front'
        });
       });
      }
@@ -444,7 +457,7 @@ if(window.AJStore){
    }else{
     store.openItem(item,index);
     if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
-     loadPresentation('assets/service-personalization.js?v=1',()=>{
+     loadPresentation('assets/service-personalization.js?v=2',()=>{
       window.AJServicePersonalization.connectProduct(custom, actual);
      });
     }
@@ -494,7 +507,14 @@ if(window.AJStore){
     const options=actual==='law'?[['all','All Law Enforcement designs'],['k9','K9 / Canine']]:[['all','All DOC designs'],['trt','Tactical Response Team (TRT)']];
     for(const [id,label] of options){const anchor=document.createElement('a');anchor.textContent=label;anchor.href=id==='k9'?url('k9-collection.html'):collectionURL(key,id==='all'?null:id);groups.append(anchor)}
     grid.before(groups);
-    if(sub==='trt')for(const [index,tile] of tiles.entries())tile.hidden=!/TRT|tactical response/i.test(entries[index].title);
+    if(sub==='trt'){
+     groups.replaceChildren();
+     const parent=document.createElement('a');
+     parent.href=collectionURL(key);
+     parent.textContent='← Back to DOC groups';
+     groups.append(parent);
+     for(const [index,tile] of tiles.entries())tile.hidden=!/TRT|tactical response/i.test(entries[index].title);
+    }
    }
   }
  }else{store.showPage('lines');setCollection(null)}
@@ -509,6 +529,14 @@ if(window.AJStore){
   const category=params.get('category')||(k==='first'?'fire':'k9');
   const original=document.querySelector('body>img.hero');if(original)original.hidden=true;
   const tabs=document.getElementById('tabs');
+  if(k==='first'&&params.has('category')&&!requested&&tabs){
+   tabs.hidden=true;
+   const parent=document.createElement('a');
+   parent.className='aj-related';
+   parent.href=location.pathname;
+   parent.textContent='← Back to First Responder groups';
+   tabs.after(parent);
+  }
   // Capture before inline legacy handlers so category and product choices open a new screen.
   if(tabs)tabs.addEventListener('click',event=>{const button=event.target.closest('button');if(!button)return;event.stopImmediatePropagation();const code=button.getAttribute('onclick')||'';const match=code.match(/group='([^']+)'/);if(match)location.assign(location.pathname+'?category='+encodeURIComponent(match[1]))},true);
   grid.addEventListener('click',event=>{const tile=event.target.closest('.tile');if(!tile)return;const button=tile.querySelector('button');if(!button)return;event.stopImmediatePropagation();const match=(button.getAttribute('onclick')||'').match(/item='([^']+)'/);if(match)location.assign(location.pathname+'?category='+encodeURIComponent(category)+'&product='+encodeURIComponent(match[1]))},true);
@@ -534,14 +562,21 @@ if(window.AJStore){
     const back=document.createElement('a');back.className='aj-related';back.href=location.pathname+'?category='+encodeURIComponent(category);back.textContent='← Back to individual designs';wrap.prepend(back);
     preview.classList.add('aj-service-preview','aj-dedicated-service');disabledCheckout(preview.lastElementChild);
     if(k==='first'){
-     const refresh=new MutationObserver(()=>personalization.draw());
      const styles=document.getElementById('types');
-     const personalization=window.AJServicePersonalization.mount(preview.lastElementChild,{
-      service:false, flag:()=>false,
-      style:()=>styles?.querySelector('[aria-pressed="true"]')?.textContent==='Hoodie'?'Hoodie':'T-shirt',
-      preview:preview.firstElementChild, standalone:true
+     const style=()=>{
+      const selected=document.getElementById('photo-style')?.value;
+      return selected&&selected!=='Collection default'?selected:
+       styles?.querySelector('[aria-pressed="true"]')?.textContent==='Hoodie'?'Hoodie':'T-shirt';
+     };
+     const settings=preview.querySelector('.customizer');
+     window.firstResponderPersonalization=window.AJServicePersonalization.mount(settings,{
+      department:true, badge:true, eow:()=>Boolean(window.AJPreviewStripes.responder[requested.replace(/-(tee|hoodie)$/,'')]),
+      style, preview:document.getElementById('livePreview'), update:()=>window.refreshSpec()
      });
-     if(styles)refresh.observe(styles,{childList:true,subtree:true,attributes:true});
+     new MutationObserver(window.firstResponderPersonalization.draw).observe(styles,{childList:true,subtree:true,attributes:true});
+     const agency=settings.querySelector('#agency');
+     agency.hidden=true;
+     settings.querySelector('label[for="agency"]').hidden=true;
     }
    }else preview.hidden=true;
   }else{
@@ -605,7 +640,7 @@ loadPresentation('assets/studio-merch.js?v=3',()=>{
   const main=document.querySelector('main');
   if(main)studio.watch(main,'#grid .tile img, #k9-products .tile img, #individual-proof, .aj-dedicated-service #preview, .aj-dedicated-breed #preview, .aj-individual-designs > img');
  }
- loadPresentation('assets/merch-preview.js?v=1');
+ loadPresentation('assets/merch-preview.js?v=2');
 });
 requestAnimationFrame(scrollToSection);
 })();
