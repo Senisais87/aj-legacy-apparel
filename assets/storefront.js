@@ -76,7 +76,7 @@ if(memorialGallery){
  memorialGallery.replaceWith(sections);
 }
 
-const collections=[['law','Law Enforcement','line-images/law-enforcement.jpg','Honor the commitment. Carry the legacy.','#1769AA'],['doc','Department of Corrections','line-images/corrections.jpg','Strength behind the walls. Honor beyond them.','#D7D9DC'],['first','First Responder','assets/first-responders/collection-group.jpg','Fire & Rescue · EMS / Paramedics · Dispatch · Water Rescue','#F47721'],['gym','Gym Attire','line-images/athletics.jpg','Built with purpose. Earned with every rep.','#F47721'],['memorial','Memorial','line-images/memorial.jpg','In memory of Andrew John Faught. A legacy that lives on.','#1769AA']];
+const collections=[['law','Law Enforcement','line-images/law-enforcement.jpg?v=featured-designs','Honor the commitment. Carry the legacy.','#1769AA'],['doc','Department of Corrections','line-images/corrections.jpg?v=featured-designs','Strength behind the walls. Honor beyond them.','#D7D9DC'],['first','First Responder','assets/first-responders/collection-group.jpg?v=featured-designs','Fire & Rescue · EMS / Paramedics · Dispatch · Water Rescue','#F47721'],['gym','Gym Attire','line-images/athletics.jpg?v=featured-designs','Built with purpose. Earned with every rep.','#F47721'],['memorial','Memorial','line-images/memorial.jpg?v=featured-designs','In memory of Andrew John Faught. A legacy that lives on.','#1769AA']];
 const link=k=>k==='first'?url('assets/first-responders/index.html'):url('index.html?collection='+k);
 /* Remove obsolete header DOM instead of merely hiding it. */
 const old=document.querySelector('body>header');
