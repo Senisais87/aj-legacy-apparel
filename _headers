@@ -12,3 +12,9 @@
   Cache-Control: no-cache
 /assets/preview-stripes.js
   Cache-Control: no-cache
+/assets/collection-models/*
+  Cache-Control: no-cache
+/assets/studio-merch/*
+  Cache-Control: no-cache
+/assets/merch-individual/*
+  Cache-Control: no-cache
