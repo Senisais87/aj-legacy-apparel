@@ -393,7 +393,8 @@
    select.disabled = !choices.length;
   };
   const sorted = items => items.sort((a, b) => a[1].localeCompare(b[1]));
-  const selectedCounty = () => geography[state.value]?.[2][county.value];
+  const countiesFor = code => window.AJAgencyCounties?.[code];
+  const selectedCounty = () => countiesFor(state.value)?.[county.value];
   const locationMark = () => {
    if (!print.checked || !selectedCounty()) return null;
    const [countyName, places] = selectedCounty();
@@ -407,27 +408,38 @@
    options(badge, matching.length ? 'Select approved artwork' : 'No approved artwork available',
     sorted(matching.map(item => [item.id, item.name])));
    if (matching.some(item => item.id === previous)) badge.value = previous;
-   const outside = state.value && !Object.keys(geography[state.value]?.[2] || {}).length;
-   status.textContent = outside ? 'County and city choices are currently limited to the Morris, Illinois area.' :
-    'Official badge customization coming soon. Artwork is listed as agencies approve it.';
+   status.textContent = 'Official badge customization coming soon. Artwork is listed as agencies approve it.';
   }
   function refreshCities() {
    options(city, 'Select city / town', sorted(Object.entries(selectedCounty()?.[1] || {})));
    refreshBadges();
   }
-  function refreshCounties() {
-   options(county, 'Select county', sorted(Object.entries(geography[state.value]?.[2] || {}).map(([id,[name]])=>[id,name])));
-   const code = geography[state.value]?.[0];
-   options(emblem, 'No state emblem', window.AJStateOutlines?.[code] ?
-    ['Left shoulder','Left chest','Right chest'].map(name=>[name,name]) : []);
+  function showCounties(code) {
+   options(county, 'Select county', sorted(Object.entries(countiesFor(code) || {}).map(([id,[name]])=>[id,name])));
    refreshCities();
+  }
+  function refreshCounties() {
+   const code = state.value;
+   options(emblem, 'No state emblem', window.AJStateOutlines?.[geography[code]?.[0]] ?
+    ['Left shoulder','Left chest','Right chest'].map(name=>[name,name]) : []);
+   if (!code || countiesFor(code)) {
+    showCounties(code);
+    return;
+   }
+   options(county, 'Loading counties…', []);
+   refreshCities();
+   loadScript('agency-counties-'+Math.floor(Number(code)/8)+'.js?v=1').then(()=>{
+    if (state.value === code) showCounties(code);
+   }).catch(()=>{
+    if (state.value === code) options(county, 'County list unavailable. Reload to try again.', []);
+   });
   }
   options(state, 'Loading states…', []);
   refreshCounties();
   state.addEventListener('input', refreshCounties);
   county.addEventListener('input', refreshCities);
   city.addEventListener('input', refreshBadges);
-  loadScript('agency-geography.js?v=1').then(()=>{
+  loadScript('agency-geography.js?v=2').then(()=>{
    geography = window.AJAgencyGeography;
    options(state, 'Select state', sorted(Object.entries(geography).map(([id,[,name]])=>[id,name])));
    refreshCounties();
