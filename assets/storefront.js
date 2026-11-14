@@ -276,7 +276,7 @@ function boardControls(item,photo,form){
 }
 
 const boardFamilies={
- 'gym-chest-logo-tee':{title:'AJ Legacy Mountain Chest Logo Tee',label:'T-shirt style',options:[['gym-chest-logo-tee','Training tee'],['memorial-chest-logo-tee','Classic tee']]},
+ 'gym-chest-logo-tee':{title:'AJ Legacy Shield Chest Logo Tee',label:'T-shirt style',options:[['gym-chest-logo-tee','Training tee'],['memorial-chest-logo-tee','Classic tee']]},
  'shield-joggers':{title:'AJ Shield Bottoms',label:'Garment style',options:[['shield-joggers','Joggers'],['shield-shorts','Shorts']]},
  'shield-trucker':{title:'AJ Shield Cap',label:'Cap style',options:[['shield-trucker','Black trucker'],['camo-shield-cap','Camo']]},
  'memorial-shield-cap':{title:'Memorial AJ Shield Cap',label:'Cap style',options:[['memorial-shield-cap','Black embroidered'],['memorial-patch-cap','Gray leather patch']]},
