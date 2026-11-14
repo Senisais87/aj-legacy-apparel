@@ -436,6 +436,14 @@ if(window.AJStore){
     form.textContent=item.detail;
     if(item.boardMerch){
      const live=boardControls(item,photo,form);
+     if(boardBack.has(boardId)){
+      const style=/hoodie/i.test(item.title)?'Hoodie':'T-shirt';
+      const front=document.createElement('img');
+      front.src=window.AJGarments.image(style,'front',true);
+      front.alt=item.title+' — front with approved AJ shield on the left chest';
+      photo.alt=item.title+' — back design';
+      (live||photo).after(front);
+     }
      if(/tee|hoodie|quarter-zip/i.test(item.title)){
       loadPresentation('assets/service-personalization.js?v=6',()=>{
        const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
