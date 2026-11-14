@@ -204,6 +204,7 @@ const stripeColors={
  'Green':'#39844c','Purple':'#8548a9','White':'#f4f4f4','Gold':'#e3b126','Monochrome':'#737373'
 };
 const boardStripes={
+ 'orange-line-patch':['orange','y',[[.14,.36,.72,.24]]],
  'orange-line-flag-top':['orange','x',[[.55,.16,.057,.66]]],
  'corrections-flag-hoodie':['orange','x',[[.54,.20,.19,.60]]],
  'vertical-flag-hoodie':['blue','x',[[.31,.22,.39,.62]]],
@@ -445,13 +446,13 @@ if(window.AJStore){
       (live||photo).after(front);
      }
      if(/tee|hoodie|quarter-zip/i.test(item.title)){
-      loadPresentation('assets/service-personalization.js?v=6',()=>{
+      loadPresentation('assets/service-personalization.js?v=8',()=>{
        const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
        window.AJServicePersonalization.mount(form,{
         department:['law','doc','gym'].includes(actual),
         badge:['law','doc'].includes(actual),
         eow:()=>actual==='limited'?memorialEow.has(boardId):['law','doc'].includes(actual)&&Boolean(boardStripes[boardId]),
-        style:()=>style, preview:live||photo, side:()=>boardBack.has(boardId)?'Back':'Front'
+        style:()=>style, stripePalette:stripeColors, preview:live||photo, side:()=>boardBack.has(boardId)?'Back':'Front'
        });
       });
      }
@@ -473,7 +474,7 @@ if(window.AJStore){
    }else{
     store.openItem(item,index);
     if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
-     loadPresentation('assets/service-personalization.js?v=6',()=>{
+     loadPresentation('assets/service-personalization.js?v=8',()=>{
       window.AJServicePersonalization.connectProduct(custom, actual);
      });
     }

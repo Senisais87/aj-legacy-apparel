@@ -643,8 +643,8 @@ document.getElementById('back-products').addEventListener('click',()=>{showPage(
 window.addEventListener('popstate',e=>{if(e.state?.page==='products'){current=e.state.line;showPage('products')}else if(e.state?.page==='customize'){showPage('customize')}else showPage('lines')});
 // Collection cards retain the original grouped merchandise images.
 // Model cards are rendered only when opening an individual-item menu.
-window.AJStore={lines,names,registerArtwork:(id,source)=>{assets[id]=source},openLine,openItem,showPage,get current(){return current}};
+window.AJStore={lines,names,flagColors,registerArtwork:(id,source)=>{assets[id]=source},openLine,openItem,showPage,get current(){return current}};
 showPage('lines');
 return assets;
 })();
-</script><script src="assets/storefront.js?v=logo-placement-1"></script></body></html>
+</script><script src="assets/storefront.js?v=thin-line-flags-2"></script></body></html>
