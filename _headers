@@ -18,3 +18,5 @@
   Cache-Control: no-cache
 /assets/merch-individual/*
   Cache-Control: no-cache
+/assets/gym-board/aj-legacy-shaker.webp
+  Cache-Control: no-cache
