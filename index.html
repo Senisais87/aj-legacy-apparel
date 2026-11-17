@@ -110,6 +110,7 @@ body[data-shop-page="products"] #shopping-flow,body[data-shop-page="customize"] 
 </div><div class="empty" id="empty">No collections match your search. Try another term.</div></section><section aria-live="polite" id="shopping-flow"><div class="choose-product"><button class="back-step" id="back-lines" type="button">← Back to four lines</button><h2 id="flow-line"></h2><p>Choose your artwork, then select a shirt or hoodie and customize it. Headwear and joggers keep their own garment styles.</p><div class="product-grid" id="product-grid"></div></div><div class="customize-screen" style="display:none"><button class="back-step" id="back-products" type="button">← Back to merchandise</button><h2 id="flow-product"></h2><div id="selected-product-image"></div><p>Personalize this selected item only.</p><div id="custom-form"></div><p class="flow-note">Preview only — ordering and payment are not enabled.</p></div></section>
 <section class="container customization-ad aj-personalization-banner" id="customization-options" aria-label="Apparel personalization"><div><div class="eyebrow">Your name. Your service. Your legacy.</div><h2>Make it yours.</h2><p>Names · Units · Rank · All 50 state emblems<br><small>Available options vary by design.</small></p></div></section><section class="aj-memorial-intro" aria-label="In loving memory of Andrew John Faught"><figure class="legacy-photo"><img src="memorial-images/drew-full-memorial-tribute.jpg" alt="Full memorial tribute honoring Andrew John Faught" loading="lazy" decoding="async"/><figcaption>In loving memory of Andrew John Faught — Drew.</figcaption></figure></section><section class="memorial" id="memorial"><div class="container unified-story"><div class="eyebrow">In Memory of Andrew Faught</div><h2>Every Legacy Has a Story.</h2><p>Andrew John “Drew” Faught (February 22, 1997 – April 8, 2024) grew up in Morris, Illinois. Long before he wore the uniform of the Illinois Department of Corrections, he was an athlete who loved competition, teamwork, and pushing himself to become stronger.</p><p>Drew played youth football with the Morris Chiefs and later played football and wrestled at Morris Community High School. Wearing #78, he played offensive and defensive line. His 2014 varsity football statistics record 38 tackles and 7 sacks in 12 games. His love of fitness continued through weightlifting and training.</p><p>Drew dedicated six years to the Illinois Department of Corrections. He served at Pontiac Correctional Center, earned promotion to sergeant, and became a member of the Tactical Response Team (TRT). He carried strength, discipline, and a commitment to his fellow officers into his work.</p><p>On April 8, 2024, Drew was heading to Lawrence Correctional Center when he was involved in a motor vehicle accident that took his life.</p><p>Drew’s service was recognized with Illinois flags flown at half-staff in April 2024, an Illinois Senate memorial resolution in 2025, and recognition among fallen officers at the Illinois Police Officers Memorial. His name was also included in the National Law Enforcement Officers Memorial’s 2025 roll call.</p><figure class="river-story"><img src="memorial-images/drew-river.jpg" alt="Drew by the river and waterfalls" loading="lazy"/><figcaption>Drew by the river — the life and legacy behind AJ Legacy Apparel.</figcaption></figure><p>But Drew was far more than a jersey number, a statistic, a rank, or an honor. He was a son, a brother, an uncle, a teammate, a coworker, and a friend. His family and the people who knew him carry forward the life, laughter, strength, and love he shared.</p><section id="our-mission" aria-labelledby="our-mission-heading">
 <h3 id="our-mission-heading">Our Mission</h3>
+<p class="aj-mission-pledge">25% of profits from Memorial Merch will be donated to Concerns of Police Survivors (C.O.P.S.).</p>
 <p>At <strong>AJ Legacy Apparel</strong>, our mission is to honor the life, strength, and memory of Andrew John Faught (Drew) by creating apparel that represents something greater than clothing.</p>
 <p>Built from love, loss, brotherhood, and an unbreakable commitment to keeping a legacy alive, our brand stands for <strong>strength, sacrifice, resilience, loyalty, and purpose.</strong></p>
 <p>Every collection tells a story. Every design carries meaning. Whether honoring those who serve, celebrating the bond between humans and their K9 partners, pushing beyond personal limits, or remembering those we’ve lost, our apparel is designed to represent the values we carry and the people who shape who we become.</p>
@@ -316,6 +317,7 @@ function openItem(item,index){
 
  let studioLink=document.getElementById('interactive-studio-link');
  if(!studioLink){studioLink=document.createElement('a');studioLink.id='interactive-studio-link';studioLink.className='btn';studioLink.style.cssText='display:inline-block;margin:12px 0';studioLink.textContent='Open interactive placement studio ↗';document.querySelector('.customize-screen')?.prepend(studioLink)}
+ if(studioLink)studioLink.onclick=()=>{sessionStorage.setItem('aj-studio-design',JSON.stringify({id:item.img,name:item.title,line:current==='gym'?'Gym':current==='limited'?'Memorial':'Service',asset:assets[item.img],referenceOnly:true,capabilities:['Name','Rank','Unit',...(['law','doc'].includes(current)?['State','Abbreviation','ThinLine']:[])]}));};
  if(studioLink)studioLink.href='customizer.html?line='+encodeURIComponent(current)+'&design='+encodeURIComponent(item.img)+'&garment='+(item.kind==='hat'?'Headwear':item.img==='style1'?'Lower':'Upper');
 
  activeGraphicPreview?.dispose();activeGraphicPreview=null;
@@ -359,6 +361,9 @@ function openItem(item,index){
  const ref=document.createElement('details');ref.id='artwork-reference';const summary=document.createElement('summary');summary.textContent='Compare with the original design image';wrap.before(ref);ref.append(summary,wrap);
  const source=new Image();let loaded=false,finished=false;
  const mainBoxes={
+  'shirt0_0':[.60,.04,.40,.90],
+  'shirt0_1':[.60,.04,.40,.90],
+  'shirt0_2':[.60,.04,.40,.90],
   'concept-gym-renew':[.595,.15,.29,.53],
   'concept-gym-strength-hoodie':[.62,.22,.34,.55],
   'concept-gym-earned':[.61,.12,.28,.49],
@@ -383,7 +388,7 @@ function openItem(item,index){
   const baseCanvas=wrap.querySelector('canvas');
   const personal=form.querySelector('#personal')?.value,text=personal&&personal!=='None'?form.querySelector('#personal-text')?.value.trim().toUpperCase()||'':'';
   const garment=catalog.styles[select.value];
-  const compose=canChangeStyle&&(logoOnly||garment.logoOnly||lower||standalone||select.value!==originalStyle||side!==originalSide||side==='Back'&&canMoveArt);
+  const compose=canChangeStyle;
   const color=garmentColors[form.querySelector('#color')?.value]||garmentColors.Black;
   const rawArt=item.rawArt||standalone;
   const stripe=form.querySelector('#flag')?.value;

@@ -39,7 +39,7 @@
  function logoZones(style, engine, back) {
   if (back) return [[.43,.13,.14,.16]];
   if (engine === 'live-garment-personalization') {
-   return [style === 'Tank Top' ? [.54,.28,.12,.14] : [.50,.19,.14,.13]];
+   return [style === 'Tank Top' ? [.54,.28,.12,.14] : [.55,.18,.11,.12]];
   }
   const [x,y,width] = window.AJGarments.styles[style]?.logo || [.61,.32,.12];
   return [[x-width/2-.02,y-width/2-.02,width+.04,width+.04]];
@@ -123,7 +123,7 @@
    const select = document.createElement('select');
    for (const location of locations[label]) select.add(new Option(location));
    select.value = label === 'Rank' ? 'Right chest' : label === 'EOW date' ? 'Bottom back' :
-    label === 'Facility / Department' ? shoulders : 'Left chest';
+    label === 'Facility / Department' ? shoulders : 'Right chest';
    position.append(select);
    row.append(caption, position);
    group.append(row);

@@ -235,4 +235,11 @@ export const designs=[
 ,
 {"id": "shirt2_0-law", "name": "Law Enforcement \u2014 Matthew 5:9", "line": "Service", "asset": "assets/matthew-law.svg", "referenceOnly": true, "capabilities": ["Name", "Rank", "Unit", "State", "Abbreviation", "ThinLine"]},
 {"id": "shirt2_0-doc", "name": "DOC / TRT \u2014 Matthew 5:9", "line": "Service", "asset": "assets/matthew-doc.svg", "referenceOnly": true, "capabilities": ["Name", "Rank", "Unit", "State", "Abbreviation", "ThinLine"]}];
+// Carry the exact catalog artwork into the placement studio in this browser tab.
+try {
+ const handoff=JSON.parse(sessionStorage.getItem('aj-studio-design')||'null');
+ if(handoff && typeof handoff.id==='string' && typeof handoff.asset==='string' &&
+    (handoff.asset.startsWith('assets/') || handoff.asset.startsWith('data:image/')) &&
+    !designs.some(d=>d.id===handoff.id)) designs.push(handoff);
+} catch (_) {}
 export const designById=id=>designs.find(d=>d.id===id)||designs[0];

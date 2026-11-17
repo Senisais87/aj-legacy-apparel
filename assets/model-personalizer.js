@@ -49,12 +49,13 @@ function text(ctx,value,cx,y,maxWidth,ink){if(!value)return;ctx.save();ctx.fillS
 window.AJModelPersonalizer={async artwork(source,box,lines,stripe){return artwork(await load(source),box,lines,stripe)},create(canvas){let sequence=0;return{async draw(v){const version=++sequence;try{const placement=v.placement||'Full Front',back=/Back/.test(placement);
 const [template,source,tankBack,logo]=await Promise.all([
  load(v.tank?'assets/mockups/individual/tank.webp':'assets/studio-garments.webp'),
- load(v.source),v.tank?load('assets/mockups/individual/tank-back.webp'):null,back?load('assets/logo.png'):null
+ load(v.source),v.tank?load('assets/mockups/individual/tank-back.webp'):null,load('assets/logo.png')
 ]);if(version!==sequence)return;canvas.width=1536;canvas.height=830;const ctx=canvas.getContext('2d');ctx.drawImage(v.tank?tankPhoto(template,v.color):photo(template,v.hoodie,false,v.color),0,0);ctx.drawImage(v.tank?tankPhoto(tankBack,v.color):photo(template,v.hoodie,true,v.color),768,0);delete canvas.dataset.previewError;const art=artwork(source,v.box||[.22,.36,.20,.36],v.lines,v.stripe);let cx=(back?1152:384),top=v.hoodie?235:185,w=235,h=v.hoodie?190:310;
  if(/Chest/.test(placement)){cx=/Right/.test(placement)?330:438;top=v.hoodie?190:175;w=70;h=75;}else if(/Sleeve/.test(placement)){cx=/Right/.test(placement)?245:520;top=210;w=36;h=48;}else if(placement==='Upper Back'){top=v.hoodie?215:155;w=170;h=145;}else if(back){top=v.hoodie?225:160;w=235;h=335;}
  if(v.tank)top=Math.max(top,220);
- if(logo)ctx.drawImage(logo,v.tank?430:402,v.tank?231:160,68,68);
- const scale=Math.min(w/art.width,h/art.height);ctx.drawImage(art,cx-art.width*scale/2,top,art.width*scale,art.height*scale);const ink=['White','Heather Gray'].includes(v.color)?'#101820':'#ffffff';const opposite=back||/Left Chest/.test(placement)?330:438;
+ if(!back&&!/Chest|Sleeve/.test(placement)){top=Math.max(top,245);h=Math.min(h,300);}
+ if(logo)ctx.drawImage(logo,430,v.tank?220:150,68,68);
+ const scale=Math.min(w/art.width,h/art.height);ctx.drawImage(art,cx-art.width*scale/2,top,art.width*scale,art.height*scale);const ink=['White','Heather Gray'].includes(v.color)?'#101820':'#ffffff';const opposite=330;
  text(ctx,v.name,opposite,v.hoodie?185:172,100,ink);text(ctx,v.department,opposite,v.hoodie?205:192,100,ink);text(ctx,v.badge,opposite,v.hoodie?225:212,95,ink);text(ctx,v.front,384,v.hoodie?455:535,210,ink);text(ctx,v.back,1152,v.hoodie?590:535,210,ink);
 
  if(v.state&&window.AJStateOutlines?.[v.state]){const shape=window.AJStateOutlines[v.state],b=shape.box;const scale=Math.min(38/b[2],42/b[3]);ctx.save();ctx.translate(523-b[2]*scale/2,(v.hoodie?235:213));ctx.scale(scale,scale);ctx.translate(-b[0],-b[1]);ctx.strokeStyle=ink;ctx.fillStyle=colors[v.color]||'#17191d';ctx.lineWidth=1.8/scale;ctx.fill(new Path2D(shape.path));ctx.stroke(new Path2D(shape.path));ctx.restore();text(ctx,v.state,523,v.hoodie?290:268,42,ink);}
