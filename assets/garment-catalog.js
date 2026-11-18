@@ -18,8 +18,8 @@
  const branded = ['Crewneck','Polo','Half-zip'];
  function image(style, side = 'front', brandedImage = false) {
   const {file, lower, logoOnly} = styles[style];
-  const suffix = brandedImage ? '-aj' : side === 'back' && !lower && !logoOnly ? '-back' : '';
+  const suffix = brandedImage && lower ? '-aj' : side === 'back' && !lower && !logoOnly ? '-back' : '';
   return new URL(file + suffix + '.webp', root).href;
  }
- window.AJGarments = {styles, tops, bottoms, branded, image};
+ window.AJGarments = {styles, tops, bottoms, branded, image, brandPlacement:'Inside below back collar', badgePlacement:'Wearer-left chest'};
 })();

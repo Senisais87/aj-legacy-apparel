@@ -222,7 +222,8 @@ function boardControls(item,photo,form){
  const id=item.img.slice('board-merch-'.length);
  const stripe=boardStripes[id];
  const trt=id==='trt-tee'||id==='orange-line-flag-top';
- if(!stripe&&!trt)return;
+ const upper=/tee|hoodie|quarter-zip|flag-top/i.test(item.title+' '+id);
+ if(!stripe&&!trt&&!upper)return;
  const canvas=document.createElement('canvas');
  canvas.id='livePreview';
  canvas.setAttribute('aria-label',item.title+' — live preview');
@@ -242,6 +243,7 @@ function boardControls(item,photo,form){
  let personal;
  if(trt){
   const label=document.createElement('label');
+  label.hidden=upper;
   label.textContent='Name or unit';
   personal=document.createElement('input');
   personal.id='trt-personalization';
@@ -250,6 +252,17 @@ function boardControls(item,photo,form){
   form.append(label);
  }
  const source=new Image();
+ const upperEngine=upper?window.AJGraphicsPreview.create(canvas,draw):null;
+ const logoOnly=/^(shield-hoodie|doc-shield-hoodie|memorial-shield-hoodie|gym-chest-logo-tee|memorial-chest-logo-tee)$/.test(id);
+ const crops={
+  'badge-story':[.28,.18,.44,.32], 'trt-tee':[.27,.17,.46,.26],
+  'correctional-officer-tee':[.28,.18,.44,.21], 'forever-27':[.22,.15,.56,.36],
+  'honor-service-sacrifice':[.30,.14,.40,.58], 'service-above-self':[.27,.17,.46,.34],
+  'peacemakers-tee':[.34,.18,.34,.49], 'their-watch':[.27,.14,.46,.60],
+  'psalm-34':[.28,.20,.44,.42], 'vertical-flag-hoodie':[.30,.20,.40,.52],
+  'corrections-flag-hoodie':[.30,.20,.40,.52], 'orange-line-flag-top':[.27,.16,.46,.56],
+  'law-enforcement-hoodie':[.27,.28,.46,.22], 'blue-line-quarter-zip':[.57,.23,.18,.15]
+ };
  function draw(){
   if(!source.naturalWidth)return;
   canvas.width=source.naturalWidth;
@@ -258,7 +271,12 @@ function boardControls(item,photo,form){
   ctx.drawImage(source,0,0);
   if(stripe&&select.value.toLowerCase()!==stripe[0])window.AJPreviewStripes.paint(ctx,stripe,[stripeColors[select.value]]);
   canvas.dataset.personalizationSource='garment';
-  if(personal?.value.trim()){
+  if(upper){
+   const art=document.createElement('canvas');art.width=canvas.width;art.height=canvas.height;art.getContext('2d').drawImage(canvas,0,0);
+   const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'T-shirt':'T-shirt';
+   upperEngine.draw({style,source:art,original:art,compose:true,logoOnly,side:boardBack.has(id)?'Back':'Front',originalSide:'Front',artKey:item.img,stripe:select?.value,mainBox:crops[id]||[.27,.17,.46,.4]});
+  }
+  if(personal?.value.trim()&&!upper){
    ctx.font='700 '+Math.round(canvas.width*.019)+'px system-ui';
    ctx.fillStyle='#fff';
    ctx.textAlign='center';
@@ -437,16 +455,16 @@ if(window.AJStore){
     form.textContent=item.detail;
     if(item.boardMerch){
      const live=boardControls(item,photo,form);
-     if(boardBack.has(boardId)){
+     if(boardBack.has(boardId)&&!live){
       const style=/hoodie/i.test(item.title)?'Hoodie':'T-shirt';
       const front=document.createElement('img');
       front.src=window.AJGarments.image(style,'front',true);
-      front.alt=item.title+' — front with approved AJ shield on the left chest';
+      front.alt=item.title+' — front with no exterior brand logo';
       photo.alt=item.title+' — back design';
       (live||photo).after(front);
      }
      if(/tee|hoodie|quarter-zip/i.test(item.title)){
-      loadPresentation('assets/service-personalization.js?v=8',()=>{
+      loadPresentation('assets/service-personalization.js?v=inside-neck-1',()=>{
        const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
        window.AJServicePersonalization.mount(form,{
         department:['law','doc','gym'].includes(actual),
@@ -474,7 +492,7 @@ if(window.AJStore){
    }else{
     store.openItem(item,index);
     if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
-     loadPresentation('assets/service-personalization.js?v=8',()=>{
+     loadPresentation('assets/service-personalization.js?v=inside-neck-1',()=>{
       window.AJServicePersonalization.connectProduct(custom, actual);
      });
     }
@@ -498,17 +516,7 @@ if(window.AJStore){
    const center=document.createElement('section');center.className='aj-preview-column';center.setAttribute('aria-label','Garment preview');
    const controls=document.createElement('section');controls.className='aj-controls-column';controls.setAttribute('aria-label','Customization options');
    for(const id of ['garment-preview','artwork-reference']){const element=document.getElementById(id);if(element)center.append(element)}
-   if(item.img.startsWith('selected-gym-')&&!item.accessory){
-    const example=document.createElement('figure');
-    const photo=document.createElement('img');
-    photo.src=boardImage(item.img);
-    photo.alt=item.title+' on its original garment';
-    photo.style.maxWidth='100%';
-    const caption=document.createElement('figcaption');
-    caption.textContent='Original garment and print placement';
-    example.append(photo,caption);
-    center.append(example);
-   }
+
 
    if(!center.children.length)center.append(document.getElementById('selected-product-image'));
    controls.append(document.getElementById('flow-product'),document.getElementById('custom-form'));disabledCheckout(controls);
@@ -628,6 +636,7 @@ loadPresentation('assets/studio-merch.js?v=3',()=>{
    const item=store.lines[line][Number(tile.dataset.productIndex)];
    const original=tile.querySelector('img');
    if(!item||!original)continue;
+   if(!item.accessory&&!/hat|cap|headwear/i.test(item.title)){store.renderThumbnail(original,item,line);continue;}
    const source=item.img.startsWith('selected-gym-')&&!item.accessory?boardImage(item.img):assets[item.img];
    const cutout=studio.source(source,item.img);
    if(!cutout)continue;
@@ -652,7 +661,7 @@ loadPresentation('assets/studio-merch.js?v=3',()=>{
    }
   }
   const detail=document.querySelector('.aj-preview-column');
-  if(detail)studio.watch(detail,'#selected-product-image img, figure img');
+  // Current garment canvases are authoritative; older photographic references are hidden.
  }else{
   const main=document.querySelector('main');
   if(main)studio.watch(main,'#grid .tile img, #k9-products .tile img, #individual-proof, .aj-dedicated-service #preview, .aj-dedicated-breed #preview, .aj-individual-designs > img');

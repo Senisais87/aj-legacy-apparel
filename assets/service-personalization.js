@@ -34,16 +34,8 @@
   'Bottom back': [1, .50, .77, .32],
  };
  const supportedStyles = ['T-shirt', 'Hoodie'];
- // Coordinates are relative to each garment face. Reserve the catalog logo,
- // the model proof's chest logo, and the fixed rear-neck logo area.
- function logoZones(style, engine, back) {
-  if (back) return [[.43,.13,.14,.16]];
-  if (engine === 'live-garment-personalization') {
-   return [style === 'Tank Top' ? [.54,.28,.12,.14] : [.55,.18,.11,.12]];
-  }
-  const [x,y,width] = window.AJGarments.styles[style]?.logo || [.61,.32,.12];
-  return [[x-width/2-.02,y-width/2-.02,width+.04,width+.04]];
- }
+ // The brand is inside the back collar; no exterior logo exclusion zone exists.
+ function logoZones() { return []; }
  function clearOfLogo(rect, zones) {
   const [x,y,w,h] = rect;
   const gap = .012;
@@ -106,7 +98,7 @@
   legend.textContent = 'Garment personalization';
   const logoNote = document.createElement('p');
   logoNote.className = 'note';
-  logoNote.textContent = 'AJ Legacy logo placement is fixed. Personalization is positioned clear of the logo.';
+  logoNote.textContent = 'AJ logo: inside, directly below the back collar. Agency badges: wearer’s left chest (viewer’s right). Names and rank stay clear of the badge.';
   group.append(legend, logoNote);
   const fields = ['Name', 'Rank', ...(department ? ['Facility / Department'] : []), ...(badge ? ['Unit'] : []), 'EOW date'].map(label => {
    const row = document.createElement('div');
@@ -168,6 +160,12 @@
    for (const {label, row} of fields) {
     row.hidden = label === 'EOW date' && !(eow() && supportedStyles.includes(currentStyle));
    }
+   const badgeReserved=Boolean(geography?.approvedBadge()||geography?.emblem());
+   if(badgeReserved){
+    const sideControl=form.querySelector('#design-side, #placement');
+    if(sideControl){const backOption=[...sideControl.options].find(o=>/^(Back|Full Back|Upper Back)$/.test(o.value));if(backOption&&!/Back/.test(sideControl.value)){sideControl.value=backOption.value;sideControl.dispatchEvent(new Event('change',{bubbles:true}));return;}}
+    for(const field of fields){const left=[...field.select.options].find(option=>option.value==='Left chest');if(left)left.disabled=true;if(field.select.value==='Left chest')field.select.value='Right chest';}
+   }else{for(const field of fields){const left=[...field.select.options].find(option=>option.value==='Left chest');if(left)left.disabled=false;}}
    const entries = marks();
    const sourceWidth = preview.tagName === 'IMG' ? preview.naturalWidth : preview.width;
    const sourceHeight = preview.tagName === 'IMG' ? preview.naturalHeight : preview.height;
@@ -207,7 +205,7 @@
     const top = (canvas.height - 26 - height) / 2;
     context.drawImage(preview, left, top, width, height);
     surfaces = [];
-    surfaces[originalSide] = [left, top, width, height];
+    surfaces[originalSide] = [left, top, width, preview.dataset.bodyHeight ? height*Number(preview.dataset.bodyHeight)/sourceHeight : height];
     if (companion?.naturalWidth) {
      const companionTop = (canvas.height - 26 - size) / 2;
      context.drawImage(companion, otherSide * size, companionTop, size, size);
@@ -221,7 +219,9 @@
     }
    }
    const front = surfaces[0], back = surfaces[1];
-   const zones = [logoZones(currentStyle, engine, false), logoZones(currentStyle, engine, true)];
+   const badgePolicy=window.AJPlacement.badge;
+   const reserved=badgeReserved?[[badgePolicy.x-.07,badgePolicy.y-.07,.14,.14]]:[];
+   const zones = [reserved, []];
    const sleeve = front || back;
    if (sleeve && currentStyle !== 'Tank Top') paintFlag(context, sleeve, !front, zones[front ? 0 : 1], selectedSleeveColors(form, stripePalette));
    const emblem = geography?.emblem();
@@ -234,8 +234,8 @@
      const size = Math.min(width, height) * .09;
      const scale = Math.min(size / art.naturalWidth, size / art.naturalHeight);
      const w = art.naturalWidth * scale, h = art.naturalHeight * scale;
-     const centerY = logoSafeY(.36, .36, w/width, h/height, zones[0]);
-     if (centerY !== null) context.drawImage(art, left + width * .36 - w / 2, top + height * centerY - h / 2, w, h);
+     const centerY = window.AJPlacement.badge.y;
+     context.drawImage(art, left + width * window.AJPlacement.badge.x - w / 2, top + height * centerY - h / 2, w, h);
     }
    }
    paint(context, entries, surfaces, zones);
@@ -253,7 +253,7 @@
   draw();
   function details() {
    const entries = marks().map(mark => mark.label + ': ' + mark.value + ' · ' + mark.placement);
-   entries.push('U.S. flag: Wearer’s right shoulder, stars forward', ...(geography?.details() || []));
+   entries.push('AJ brand: inside directly below back collar', 'Agency badge placement: wearer-left chest (viewer-right)', 'U.S. flag: Wearer’s right shoulder, stars forward', ...(geography?.details() || []));
    return entries;
   }
   return {draw, details, snapshot: () => proof.hidden ? null : canvas.toDataURL('image/png')};
@@ -369,9 +369,9 @@
   if (!shape || !surface) return;
   const [left, top, width, height] = surface;
   const [x, y, w, h] = shape.box;
-  const center = placement === 'Right chest' ? .37 : placement === 'Left chest' ? .63 : front ? .77 : .23;
+  const center = .64;
   const scale = Math.min(width, height) * .073 / Math.max(w, h);
-  const centerY = logoSafeY(center, placement === 'Left shoulder' ? .355 : .365, w*scale/width+.008, h*scale/height+.008, zones[front ? 0 : 1]);
+  const centerY = logoSafeY(center, window.AJPlacement.badge.y, w*scale/width+.008, h*scale/height+.008, zones[front ? 0 : 1]);
   if (centerY === null) return;
   context.save();
   context.translate(left + center * width, top + centerY * height);
@@ -430,7 +430,7 @@
    options(badge, matching.length ? 'Select approved artwork' : 'No approved artwork available',
     sorted(matching.map(item => [item.id, item.name])));
    if (matching.some(item => item.id === previous)) badge.value = previous;
-   status.textContent = 'Official badge customization coming soon. Artwork is listed as agencies approve it.';
+   status.textContent = 'Official badge customization coming soon. Approved badges will be fixed to the wearer’s left chest (viewer’s right).';
   }
   function refreshCities() {
    options(city, 'Select city / town', sorted(Object.entries(selectedCounty()?.[1] || {})));
@@ -443,7 +443,7 @@
   function refreshCounties() {
    const code = state.value;
    options(emblem, 'No state emblem', window.AJStateOutlines?.[geography[code]?.[0]] ?
-    ['Left shoulder','Left chest','Right chest'].map(name=>[name,name]) : []);
+    ['Left chest'].map(name=>[name,name]) : []);
    if (!code || countiesFor(code)) {
     showCounties(code);
     return;
@@ -468,12 +468,12 @@
   }).catch(()=>{status.textContent='Location choices could not load. Reload this page to try again.'});
   if (!window.AJStateOutlines) loadScript('state-outlines.js?v=1').then(()=>{
    const code = geography[state.value]?.[0];
-   if (window.AJStateOutlines?.[code]) options(emblem, 'No state emblem', ['Left shoulder','Left chest','Right chest'].map(name=>[name,name]));
+   if (window.AJStateOutlines?.[code]) options(emblem, 'No state emblem', ['Left chest'].map(name=>[name,name]));
    redraw();
   }).catch(()=>{});
   return {
    locationMark,
-   emblem: () => emblem.value ? {code:geography[state.value]?.[0], placement:emblem.value} : null,
+   emblem: () => emblem.value && !badge.value ? {code:geography[state.value]?.[0], placement:emblem.value} : null,
    approvedBadge: () => approvedBadges.find(item=>item.id===badge.value),
    details() {
     const area = geography[state.value];

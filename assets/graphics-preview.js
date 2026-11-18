@@ -33,6 +33,8 @@
    if(!v.rawArt && hi-lo<30) pixels.data[i+3]*=Math.max(0,Math.min(1,(hi-37)/73));
   }
   cut.putImageData(pixels,0,0);
+  const exclusions={'concept-doc-scripture':[[.71,.375,.09,.13]],'concept-gym-undefeated':[[.34,.80,.34,.07]],'concept-gym-built-to-rise':[[.33,.76,.35,.08]],'concept-gym-legacy-veins':[[.32,.79,.35,.08]],'selected-gym-board-iron-sharpens-iron':[[.43,.51,.13,.16]],'selected-gym-board-strength-through-christ':[[.43,.50,.13,.17]]};
+  for(const [ex,ey,ew,eh] of exclusions[v.artKey]||[])cut.clearRect((ex*iw-x)*ratio,(ey*ih-y)*ratio,ew*iw*ratio,eh*ih*ratio);
   return cut.canvas;
  }
  function drawGarment(context, image, x, size, color) {
@@ -95,7 +97,7 @@
      if([front,back,logo].some(image=>image&&!image.naturalWidth))return false;
      const size=oneSide?540:420;
      canvas.width=size*(oneSide?1:2);
-     canvas.height=size+(oneSide?0:28);
+     canvas.height=size+(profile.lower?0:118);
      const context=canvas.getContext('2d');
      drawGarment(context,front,0,size,v.color);
      if(back) drawGarment(context,back,size,size,v.color);
@@ -106,10 +108,11 @@
       const [x,y,w,h]=profile.print;
       fit(context,cut,((back&&v.side==='Back'?1:0)+x)*size,y*size,w*size,h*size);
      }
-     if(profile.logoOnly||profile.lower||v.side==='Back'){
+     if(profile.lower){
       const [x,y,w]=profile.logo;
       fit(context,logo,x*size,y*size,w*size,w*size);
      }
+     if(!profile.lower)window.AJPlacement.insideLabel(context,logo,0,size+28,canvas.width,90);
      if(v.text&&!profile.logoOnly){
       context.fillStyle=v.ink;
       context.font='bold 13px system-ui';
@@ -133,6 +136,10 @@
      context.globalCompositeOperation='source-over';
     }
     canvas.dataset.previewEngine=v.compose?'garment-artwork-composite':'live-product-artwork';
+    canvas.dataset.logoSide=window.AJGarments.styles[v.style]?.lower?'Front':'Inside';
+    canvas.dataset.brandPlacement=window.AJPlacement.brand.placement;
+    canvas.dataset.badgePlacement='Wearer-left chest';
+    canvas.dataset.bodyHeight=v.compose?String(window.AJGarments.styles[v.style]?.lower||window.AJGarments.styles[v.style]?.logoOnly?540:420):String(canvas.height);
     canvas.dataset.garment=v.style;
     canvas.dataset.placement=v.side;
     return true;

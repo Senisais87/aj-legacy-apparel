@@ -9,3 +9,17 @@ test('Export validation rejects out-of-bounds, forbidden types and duplicates',(
 test('Dog options require both a K9 design and dog artwork, not a collection label',()=>{const dog=designById('k1'),zone=zones('Upper').find(z=>z.id==='chest-left');assert(allowed('Upper','K9',zone,dog).includes('Breed'));for(const d of [basic,{...dog,containsDog:false},{...dog,line:'Service'},undefined])assert(!allowed('Upper','K9',zone,d).includes('Breed'));assert(!supports(dog,'Breed','Lower','K9'));assert(!supports(dog,'Breed','Upper','Service'));});
 test('Thin-line and state options require the selected product capability',()=>{const flag=designById('k1');assert(supports(flag,'ThinLine','Upper','K9'));for(const d of [basic,{...flag,capabilities:['Name']},undefined]){assert(!supports(d,'ThinLine','Upper','K9'));assert(!supports(d,'State','Upper','K9'));}const z=zones('Upper').find(z=>z.id==='front-graphic');const e={...z,id:'flag',zone:z.id,kind:'Graphic',graphic:'Flag'};assert(validate([e],'Upper','K9',flag));assert(!validate([e],'Upper','K9',basic));assert(!validate([e],'Upper','Gym',flag));});
 test('Exports revalidate capabilities after switching to unsupported or uploaded artwork',()=>{const z=zones('Upper')[0],e={...z,id:'breed',zone:z.id,kind:'Breed'};assert(validate([e],'Upper','K9',designById('k1')));assert(!validate([e],'Upper','K9',basic));assert(!validate([e],'Upper','K9',{id:'uploaded',line:'Any',capabilities:['Name','Rank','Unit']}));});
+
+test('Upper branding is locked inside beneath the collar and leaves both exterior chest zones free',()=>{
+ const brand=logo('Upper');assert.equal(brand.side,'Inside');assert.equal(brand.locked,true);assert.equal(brand.placement,'Centered inside below back collar');
+ for(const zone of zones('Upper').filter(z=>z.id.startsWith('chest-')))assert(!collides(zone,brand));
+});
+test('State badge customization is restricted to wearer-left chest and rejects a forged right-side export',()=>{
+ const design=designById('k1'),left=zones('Upper').find(z=>z.id==='chest-left');
+ assert(allowed('Upper','K9',left,design).includes('State'));
+ for(const zone of zones('Upper').filter(z=>z.id!=='chest-left'))assert(!allowed('Upper','K9',zone,design).includes('State'));
+ const right=zones('Upper').find(z=>z.id==='chest-right');
+ assert(!validate([{...right,id:'state',zone:right.id,kind:'State'}],'Upper','K9',design));
+ assert(validate([{...left,id:'state',zone:left.id,kind:'State'}],'Upper','K9',design));
+ assert(left.x>250,'wearer-left must be viewer-right');
+});
