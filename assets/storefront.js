@@ -218,19 +218,18 @@ const boardStripes={
  'correctional-officer-tee':['orange','y',[[.13,.28,.19,.24]]]
 };
 
-function boardControls(item,photo,form){
+function boardControls(item,photo,form,thumbnail=false){
  const id=item.img.slice('board-merch-'.length);
  const stripe=boardStripes[id];
  const trt=id==='trt-tee'||id==='orange-line-flag-top';
  const upper=/tee|hoodie|quarter-zip|flag-top/i.test(item.title+' '+id);
- if(!stripe&&!trt&&!upper)return;
+ if(thumbnail&&!upper||!stripe&&!trt&&!upper)return;
  const canvas=document.createElement('canvas');
  canvas.id='livePreview';
  canvas.setAttribute('aria-label',item.title+' — live preview');
- photo.after(canvas);
- photo.hidden=true;
+ if(!thumbnail){photo.after(canvas);photo.hidden=true;}
  let select;
- if(stripe){
+ if(stripe&&!thumbnail){
   const label=document.createElement('label');
   label.textContent='Thin-line flag color';
   select=document.createElement('select');
@@ -241,7 +240,7 @@ function boardControls(item,photo,form){
   form.append(label);
  }
  let personal;
- if(trt){
+ if(trt&&!thumbnail){
   const label=document.createElement('label');
   label.hidden=upper;
   label.textContent='Name or unit';
@@ -265,17 +264,24 @@ function boardControls(item,photo,form){
  };
  function draw(){
   if(!source.naturalWidth)return;
-  canvas.width=source.naturalWidth;
-  canvas.height=source.naturalHeight;
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  const art=upper?document.createElement('canvas'):canvas;
+  art.width=source.naturalWidth;
+  art.height=source.naturalHeight;
+  const ctx=art.getContext('2d',{willReadFrequently:true});
   ctx.drawImage(source,0,0);
-  if(stripe&&select.value.toLowerCase()!==stripe[0])window.AJPreviewStripes.paint(ctx,stripe,[stripeColors[select.value]]);
-  canvas.dataset.personalizationSource='garment';
+  if(stripe&&select&&select.value.toLowerCase()!==stripe[0])window.AJPreviewStripes.paint(ctx,stripe,[stripeColors[select.value]]);
   if(upper){
-   const art=document.createElement('canvas');art.width=canvas.width;art.height=canvas.height;art.getContext('2d').drawImage(canvas,0,0);
-   const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'T-shirt':'T-shirt';
-   upperEngine.draw({style,source:art,original:art,compose:true,logoOnly,side:boardBack.has(id)?'Back':'Front',originalSide:'Front',artKey:item.img,stripe:select?.value,mainBox:crops[id]||[.27,.17,.46,.4]});
-  }
+   const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
+   const drawn=upperEngine.draw({style,source:art,original:art,compose:true,logoOnly,side:boardBack.has(id)?'Back':'Front',originalSide:'Front',artKey:item.img,stripe:select?.value,mainBox:crops[id]||[.27,.17,.46,.4]});
+   if(!drawn)return;
+   if(thumbnail){
+    photo.src=canvas.toDataURL();
+    photo.dataset.currentPlacement='true';
+   }else{
+    canvas.dataset.personalizationSource='garment';
+    canvas.dispatchEvent(new Event('previewrendered'));
+   }
+  }else canvas.dataset.personalizationSource='garment';
   if(personal?.value.trim()&&!upper){
    ctx.font='700 '+Math.round(canvas.width*.019)+'px system-ui';
    ctx.fillStyle='#fff';
@@ -284,10 +290,11 @@ function boardControls(item,photo,form){
   }
  }
  source.onload=draw;
- source.src=photo.src;
+ source.src=boardImage(id);
  select?.addEventListener('change',draw);
  personal?.addEventListener('input',draw);
  document.addEventListener('aj-studio-merch-ready',()=>{
+  if(upper)return;
   const cutout=window.AJStudioMerch.source(source.src);
   if(cutout)source.src=cutout;
  },{once:true});
@@ -410,6 +417,14 @@ if(window.AJStore){
    tile.dataset.productIndex=index;
    const boardId=item.boardMerch?item.img.slice('board-merch-'.length):null;
    const family=boardFamilies[boardId];
+   if(boardId&&/tee|hoodie|quarter-zip|flag-top/i.test(item.title+' '+boardId)){
+    // Use the same collar-only garment composition as the live product proof.
+    // Replace the original image node so its pending legacy preview cannot overwrite it.
+    const thumbnail=image.cloneNode(false);
+    thumbnail.removeAttribute('src');
+    image.replaceWith(thumbnail);
+    boardControls(item,thumbnail,null,true);
+   }
    if(item.img.startsWith('selected-gym-')&&!item.accessory)image.src=boardImage(item.img);
    if(family)tile.querySelector('strong').textContent=family.title;
    if(item.garmentGroup==='logo'&&item.style==='Crewneck')tile.querySelector('strong').textContent='AJ Legacy Shield Tops';
@@ -464,7 +479,7 @@ if(window.AJStore){
       (live||photo).after(front);
      }
      if(/tee|hoodie|quarter-zip/i.test(item.title)){
-      loadPresentation('assets/service-personalization.js?v=inside-neck-1',()=>{
+      loadPresentation('assets/service-personalization.js?v=badge-chest-2',()=>{
        const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
        window.AJServicePersonalization.mount(form,{
         department:['law','doc','gym'].includes(actual),
@@ -492,7 +507,7 @@ if(window.AJStore){
    }else{
     store.openItem(item,index);
     if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
-     loadPresentation('assets/service-personalization.js?v=inside-neck-1',()=>{
+     loadPresentation('assets/service-personalization.js?v=badge-chest-2',()=>{
       window.AJServicePersonalization.connectProduct(custom, actual);
      });
     }
@@ -635,7 +650,7 @@ loadPresentation('assets/studio-merch.js?v=3',()=>{
   for(const tile of document.querySelectorAll('#product-grid .product-tile')){
    const item=store.lines[line][Number(tile.dataset.productIndex)];
    const original=tile.querySelector('img');
-   if(!item||!original)continue;
+   if(!item||!original||item.boardMerch&&/tee|hoodie|quarter-zip|flag-top/i.test(item.title+' '+item.img))continue;
    if(!item.accessory&&!/hat|cap|headwear/i.test(item.title)){store.renderThumbnail(original,item,line);continue;}
    const source=item.img.startsWith('selected-gym-')&&!item.accessory?boardImage(item.img):assets[item.img];
    const cutout=studio.source(source,item.img);

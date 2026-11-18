@@ -13,7 +13,7 @@
  }
  // Add a badge only after confirming written permission for previews and printed apparel.
  const approvedBadges = [];
- const chest = ['Left chest', 'Right chest'];
+ const chest = ['Right chest'];
  const shoulders = 'Across back shoulders';
  const spine = 'Down back spine';
  const hems = ['Bottom front', 'Bottom back'];
@@ -26,7 +26,6 @@
   'County / City': [...chest, shoulders, ...hems],
  };
  const boxes = {
-  'Left chest': [0, .64, .30, .13],
   'Right chest': [0, .36, .30, .13],
   [shoulders]: [1, .50, .32, .33],
   [spine]: [1, .50, .55, .26],
@@ -160,12 +159,11 @@
    for (const {label, row} of fields) {
     row.hidden = label === 'EOW date' && !(eow() && supportedStyles.includes(currentStyle));
    }
-   const badgeReserved=Boolean(geography?.approvedBadge()||geography?.emblem());
+   const badgeReserved=Boolean(geography?.approvedBadge());
    if(badgeReserved){
     const sideControl=form.querySelector('#design-side, #placement');
     if(sideControl){const backOption=[...sideControl.options].find(o=>/^(Back|Full Back|Upper Back)$/.test(o.value));if(backOption&&!/Back/.test(sideControl.value)){sideControl.value=backOption.value;sideControl.dispatchEvent(new Event('change',{bubbles:true}));return;}}
-    for(const field of fields){const left=[...field.select.options].find(option=>option.value==='Left chest');if(left)left.disabled=true;if(field.select.value==='Left chest')field.select.value='Right chest';}
-   }else{for(const field of fields){const left=[...field.select.options].find(option=>option.value==='Left chest');if(left)left.disabled=false;}}
+   }
    const entries = marks();
    const sourceWidth = preview.tagName === 'IMG' ? preview.naturalWidth : preview.width;
    const sourceHeight = preview.tagName === 'IMG' ? preview.naturalHeight : preview.height;
@@ -191,7 +189,7 @@
     const originalSide = side() === 'Back' ? 1 : 0;
     const otherSide = 1 - originalSide;
     const needsOther = entries.some(mark => boxes[mark.placement][0] === otherSide) ||
-     otherSide === 0 && (geography?.approvedBadge() || ['Left chest','Right chest'].includes(geography?.emblem()?.placement));
+     otherSide === 0 && (geography?.approvedBadge() || geography?.emblem()?.placement==='Left shoulder');
     const catalog = window.AJGarments;
     const template = catalog.styles[currentStyle] ? currentStyle : 'T-shirt';
     const companion = needsOther ? image(catalog.image(template, otherSide ? 'back' : 'front')) : null;
@@ -369,9 +367,9 @@
   if (!shape || !surface) return;
   const [left, top, width, height] = surface;
   const [x, y, w, h] = shape.box;
-  const center = .64;
+  const center = front ? .77 : .23;
   const scale = Math.min(width, height) * .073 / Math.max(w, h);
-  const centerY = logoSafeY(center, window.AJPlacement.badge.y, w*scale/width+.008, h*scale/height+.008, zones[front ? 0 : 1]);
+  const centerY = logoSafeY(center, .31, w*scale/width+.008, h*scale/height+.008, zones[front ? 0 : 1]);
   if (centerY === null) return;
   context.save();
   context.translate(left + center * width, top + centerY * height);
@@ -443,7 +441,7 @@
   function refreshCounties() {
    const code = state.value;
    options(emblem, 'No state emblem', window.AJStateOutlines?.[geography[code]?.[0]] ?
-    ['Left chest'].map(name=>[name,name]) : []);
+    [['Left shoulder','Left shoulder']] : []);
    if (!code || countiesFor(code)) {
     showCounties(code);
     return;
@@ -468,7 +466,7 @@
   }).catch(()=>{status.textContent='Location choices could not load. Reload this page to try again.'});
   if (!window.AJStateOutlines) loadScript('state-outlines.js?v=1').then(()=>{
    const code = geography[state.value]?.[0];
-   if (window.AJStateOutlines?.[code]) options(emblem, 'No state emblem', ['Left chest'].map(name=>[name,name]));
+   if (window.AJStateOutlines?.[code]) options(emblem, 'No state emblem', [['Left shoulder','Left shoulder']]);
    redraw();
   }).catch(()=>{});
   return {

@@ -22,3 +22,6 @@
   Cache-Control: no-cache
 /assets/graphics-preview.js
   Cache-Control: no-cache
+
+/assets/service-personalization.js
+  Cache-Control: no-cache
