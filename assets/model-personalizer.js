@@ -56,8 +56,8 @@ const [template,source,tankBack,logo]=await Promise.all([
  if(!back&&!/Chest|Sleeve/.test(placement)){top=v.hoodie?220:v.tank?220:170;h=Math.min(h,v.hoodie?190:310);}
 
  const scale=Math.min(w/art.width,h/art.height);ctx.drawImage(art,cx-art.width*scale/2,top,art.width*scale,art.height*scale);const ink=['White','Heather Gray'].includes(v.color)?'#101820':'#ffffff';const opposite=330;
- text(ctx,v.name,opposite,v.hoodie?185:172,100,ink);text(ctx,v.department,opposite,v.hoodie?205:192,100,ink);text(ctx,v.badge,opposite,v.hoodie?225:212,95,ink);text(ctx,v.front,384,v.hoodie?455:535,210,ink);text(ctx,v.back,1152,v.hoodie?590:535,210,ink);
+ text(ctx,v.name,opposite,v.hoodie?185:172,100,ink);text(ctx,v.department,opposite,v.hoodie?205:192,100,ink);text(ctx,v.front,384,v.hoodie?455:535,210,ink);text(ctx,v.back,1152,v.hoodie?590:535,210,ink);
 
- if(v.state&&window.AJStateOutlines?.[v.state]){const shape=window.AJStateOutlines[v.state],b=shape.box;const scale=Math.min(38/b[2],42/b[3]);ctx.save();ctx.translate(523-b[2]*scale/2,(v.hoodie?235:213));ctx.scale(scale,scale);ctx.translate(-b[0],-b[1]);ctx.strokeStyle=ink;ctx.fillStyle=colors[v.color]||'#17191d';ctx.lineWidth=1.8/scale;ctx.fill(new Path2D(shape.path));ctx.stroke(new Path2D(shape.path));ctx.restore();text(ctx,v.state,523,v.hoodie?290:268,42,ink);}
+
  ctx.fillStyle='#19191a';ctx.fillRect(0,768,1536,62);ctx.fillStyle='#f4f4f4';ctx.font='600 20px Arial';ctx.textAlign='center';ctx.fillText('FRONT',384,805);ctx.fillText('BACK',1152,805);window.AJPlacement.insideLabel(ctx,logo,0,830,1536,90);canvas.dataset.logoSide='Inside';canvas.dataset.brandPlacement=window.AJPlacement.brand.placement;canvas.dataset.badgePlacement='Wearer-left chest';canvas.dataset.previewEngine='live-garment-personalization';canvas.dataset.previewState=JSON.stringify(v);canvas.dataset.renderVersion=String(version);canvas.setAttribute('aria-label',(v.title||'AJ Legacy apparel')+' personalized front and back garment preview');canvas.dispatchEvent(new CustomEvent('previewrendered'));}catch(e){canvas.dataset.previewError=e.message;canvas.dispatchEvent(new CustomEvent('previewerror'));}}}}};
 })();

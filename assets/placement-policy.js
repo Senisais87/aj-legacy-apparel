@@ -2,6 +2,62 @@
 (() => {
  const badge={surface:'Front',placement:'Left chest',wearerSide:'left',viewerSide:'right',x:.64,y:.285,width:.10,height:.12};
  const brand={surface:'Inside',placement:'Centered inside immediately below back collar',locked:true,asset:'assets/logo.png'};
+ const flag={placement:'Right shoulder',wearerSide:'right',stars:'forward'};
+ const state={placement:'Left shoulder',wearerSide:'left',studioZone:'shoulder-left'};
+ const garmentSleeves = {
+  'T-shirt': [.23,.365,.095],
+  Hoodie: [.27,.435,.095],
+  Crewneck: [.285,.435,.065],
+  Polo: [.275,.395,.065],
+  'Half-zip': [.285,.435,.065],
+ };
+ const photographedSleeves = {
+  'T-shirt': [.21,.365,.085],
+  Hoodie: [.23,.435,.085],
+ };
+ function sleevePosition(style, wearerSide, back=false, photographed=false) {
+  const [offset, height, width] = (photographed && photographedSleeves[style]) ||
+   garmentSleeves[style] || garmentSleeves['T-shirt'];
+  return [(wearerSide === 'right') !== back ? offset : 1 - offset, height, width];
+ }
+ function hasSleeves(style) { return style !== 'Tank Top'; }
+ function drawFlag(context, x, y, flagWidth, flagHeight, back, colors) {
+  const stripe = flagHeight / 13;
+  const unionWidth = flagWidth * .4;
+  // The right sleeve changes screen sides when the garment is turned around.
+  const unionX = back ? 0 : flagWidth - unionWidth;
+  context.save();
+  context.translate(x, y);
+  for (let row = 0; row < 13; row++) {
+   context.fillStyle = row === 6 ? '#b8b8b8' : row % 2 ? '#555555' : '#242424';
+   context.fillRect(0, row * stripe, flagWidth, stripe);
+  }
+  context.fillStyle = '#242424';
+  context.fillRect(unionX, 0, unionWidth, stripe * 7);
+  context.fillStyle = '#fff';
+  for (let row = 0; row < 9; row++) {
+   for (let column = 0; column < (row % 2 ? 5 : 6); column++) {
+    const sx = unionX + unionWidth * (column + (row % 2 ? 1 : .5)) / 6;
+    const sy = stripe * 7 * (row + .5) / 9;
+    context.beginPath();
+    for (let point = 0; point < 10; point++) {
+     const angle = point * Math.PI / 5 - Math.PI / 2;
+     const radius = stripe * (point % 2 ? .16 : .38);
+     context.lineTo(sx + Math.cos(angle) * radius, sy + Math.sin(angle) * radius);
+    }
+    context.closePath();
+    context.fill();
+   }
+  }
+  const accents = colors.length ? colors : ['#b8b8b8'];
+  const start = back ? unionWidth : 0;
+  const segment = (flagWidth - unionWidth) / accents.length;
+  accents.forEach((color, index) => {
+   context.fillStyle = color;
+   context.fillRect(start + segment * index, stripe * 6, segment, stripe);
+  });
+  context.restore();
+ }
  function insideLabel(ctx,logo,x,y,width,height){
   ctx.save();ctx.fillStyle='#222830';ctx.fillRect(x,y,width,height);
   const sx=x+12,sy=y+10,w=Math.min(82,width*.26),h=height-20;
@@ -13,5 +69,5 @@
   ctx.fillText('INSIDE BACK COLLAR',sx+w+12,sy+24,width-w-36);
   ctx.fillStyle='#c1c7cf';ctx.font='11px system-ui';ctx.fillText('Fixed AJ label · no exterior chest logo',sx+w+12,sy+45,width-w-36);ctx.restore();
  }
- window.AJPlacement=Object.freeze({brand:Object.freeze(brand),badge:Object.freeze(badge),insideLabel});
+ window.AJPlacement=Object.freeze({brand:Object.freeze(brand),badge:Object.freeze(badge),flag:Object.freeze(flag),state:Object.freeze(state),sleevePosition,hasSleeves,drawFlag,insideLabel});
 })();

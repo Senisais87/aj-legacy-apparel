@@ -156,6 +156,7 @@
   function draw() {
    if (!proof.isConnected) return;
    const currentStyle = style();
+   geography?.setSleeves(window.AJPlacement.hasSleeves(currentStyle));
    for (const {label, row} of fields) {
     row.hidden = label === 'EOW date' && !(eow() && supportedStyles.includes(currentStyle));
    }
@@ -189,7 +190,7 @@
     const originalSide = side() === 'Back' ? 1 : 0;
     const otherSide = 1 - originalSide;
     const needsOther = entries.some(mark => boxes[mark.placement][0] === otherSide) ||
-     otherSide === 0 && (geography?.approvedBadge() || geography?.emblem()?.placement==='Left shoulder');
+     otherSide === 0 && (geography?.approvedBadge() || geography?.emblem()?.placement===window.AJPlacement.state.placement);
     const catalog = window.AJGarments;
     const template = catalog.styles[currentStyle] ? currentStyle : 'T-shirt';
     const companion = needsOther ? image(catalog.image(template, otherSide ? 'back' : 'front')) : null;
@@ -223,9 +224,9 @@
    const sleeve = front || back;
    const colors = selectedSleeveColors(form, stripePalette);
    if (!colors.length && defaultSleeveColor) colors.push(defaultSleeveColor);
-   if (sleeve && currentStyle !== 'Tank Top') paintFlag(context, sleeve, !front, zones[front ? 0 : 1], colors, currentStyle);
-   const emblem = geography?.emblem();
-   if (emblem && currentStyle !== 'Tank Top') paintState(context, emblem, front, back, zones, currentStyle);
+   if (sleeve && window.AJPlacement.hasSleeves(currentStyle)) paintFlag(context, sleeve, !front, zones[front ? 0 : 1], colors, currentStyle, engine === 'live-garment-personalization');
+   const emblem = window.AJPlacement.hasSleeves(currentStyle) ? geography?.emblem() : null;
+   if (emblem) paintState(context, emblem, front, back, zones, currentStyle, engine === 'live-garment-personalization');
    const agencyBadge = geography?.approvedBadge();
    if (agencyBadge && front) {
     const art = image(new URL(agencyBadge.artwork, assetRoot).href);
@@ -248,6 +249,7 @@
   group.addEventListener('change', () => {draw(); update?.()});
   form.addEventListener('change', draw);
   preview.addEventListener('load', draw);
+  preview.addEventListener('previewrendered', draw);
   new MutationObserver(draw).observe(preview, {
    attributes: true,
    attributeFilter: ['data-preview-engine', 'data-render-version', 'data-personalization-source'],
@@ -255,7 +257,9 @@
   draw();
   function details() {
    const entries = marks().map(mark => mark.label + ': ' + mark.value + ' · ' + mark.placement);
-   entries.push('AJ brand: inside directly below back collar', 'Agency badge placement: wearer-left chest (viewer-right)', 'U.S. flag: Wearer’s right shoulder, stars forward', ...(geography?.details() || []));
+   entries.push('AJ brand: inside directly below back collar', 'Agency badge placement: wearer-left chest (viewer-right)');
+   if (window.AJPlacement.hasSleeves(style())) entries.push('U.S. flag: wearer-right upper sleeve, stars forward');
+   entries.push(...(geography?.details(window.AJPlacement.hasSleeves(style())) || []));
    return entries;
   }
   return {draw, details, snapshot: () => proof.hidden ? null : canvas.toDataURL('image/png')};
@@ -320,64 +324,26 @@
   attach();
   new MutationObserver(attach).observe(screen, {subtree: true, childList: true});
  }
- // Long sleeves narrow at the top. Position both marks slightly lower and inboard on hoodies.
- function sleevePosition(style, wearerRight, back) {
-  const offset = style === 'Hoodie' ? .27 : .23;
-  return [wearerRight !== back ? offset : 1 - offset, style === 'Hoodie' ? .435 : .365];
- }
- function paintFlag(context, surface, back, zones, colors, style) {
+ function paintFlag(context, surface, back, zones, colors, style, photographed) {
   const [left, top, width, height] = surface;
-  const flagWidth = Math.min(width, height) * .095;
+  const {flag, sleevePosition, drawFlag} = window.AJPlacement;
+  const [sleeveX, sleeveCenterY, widthFraction] = sleevePosition(style, flag.wearerSide, back, photographed);
+  const flagWidth = Math.min(width, height) * widthFraction;
   const flagHeight = flagWidth / 1.9;
-  const [sleeveX, sleeveCenterY] = sleevePosition(style, true, back);
-  const x = left + width * sleeveX - flagWidth / 2;
   const sleeveY = logoSafeY(sleeveX, sleeveCenterY, flagWidth/width, flagHeight/height, zones);
   if (sleeveY === null) return;
-  const y = top + height * sleeveY - flagHeight / 2;
-  const stripe = flagHeight / 13;
-  const unionWidth = flagWidth * .4;
-  // The right sleeve changes screen sides when the garment is turned around.
-  const unionX = back ? 0 : flagWidth - unionWidth;
-  context.save();
-  context.translate(x, y);
-  for (let row = 0; row < 13; row++) {
-   context.fillStyle = row === 6 ? '#b8b8b8' : row % 2 ? '#555555' : '#242424';
-   context.fillRect(0, row * stripe, flagWidth, stripe);
-  }
-  context.fillStyle = '#242424';
-  context.fillRect(unionX, 0, unionWidth, stripe * 7);
-  context.fillStyle = '#fff';
-  for (let row = 0; row < 9; row++) {
-   for (let column = 0; column < (row % 2 ? 5 : 6); column++) {
-    const sx = unionX + unionWidth * (column + (row % 2 ? 1 : .5)) / 6;
-    const sy = stripe * 7 * (row + .5) / 9;
-    context.beginPath();
-    for (let point = 0; point < 10; point++) {
-     const angle = point * Math.PI / 5 - Math.PI / 2;
-     const radius = stripe * (point % 2 ? .16 : .38);
-     context.lineTo(sx + Math.cos(angle) * radius, sy + Math.sin(angle) * radius);
-    }
-    context.closePath();
-    context.fill();
-   }
-  }
-  const accents = colors.length ? colors : ['#b8b8b8'];
-  const start = back ? unionWidth : 0;
-  const segment = (flagWidth - unionWidth) / accents.length;
-  accents.forEach((color, index) => {
-   context.fillStyle = color;
-   context.fillRect(start + segment * index, stripe * 6, segment, stripe);
-  });
-  context.restore();
+  drawFlag(context, left + width * sleeveX - flagWidth / 2, top + height * sleeveY - flagHeight / 2,
+   flagWidth, flagHeight, back, colors);
  }
- function paintState(context, {code, placement}, front, back, zones, style) {
+ function paintState(context, {code, placement}, front, back, zones, style, photographed) {
   const shape = window.AJStateOutlines?.[code];
-  const surface = front || (placement === 'Left shoulder' ? back : null);
+  const policy=window.AJPlacement;
+  const surface = front || (placement === policy.state.placement ? back : null);
   if (!shape || !surface) return;
   const [left, top, width, height] = surface;
   const [x, y, w, h] = shape.box;
-  const [center, sleeveCenterY] = sleevePosition(style, false, !front);
-  const scale = Math.min(width, height) * .073 / Math.max(w, h);
+  const [center, sleeveCenterY, widthFraction] = policy.sleevePosition(style, policy.state.wearerSide, !front, photographed);
+  const scale = Math.min(width, height) * widthFraction * .77 / Math.max(w, h);
   const centerY = logoSafeY(center, sleeveCenterY, w*scale/width+.008, h*scale/height+.008, zones[front ? 0 : 1]);
   if (centerY === null) return;
   context.save();
@@ -450,7 +416,7 @@
   function refreshCounties() {
    const code = state.value;
    options(emblem, 'No state emblem', window.AJStateOutlines?.[geography[code]?.[0]] ?
-    [['Left shoulder','Left shoulder']] : []);
+    [[window.AJPlacement.state.placement,window.AJPlacement.state.placement]] : []);
    if (!code || countiesFor(code)) {
     showCounties(code);
     return;
@@ -475,21 +441,25 @@
   }).catch(()=>{status.textContent='Location choices could not load. Reload this page to try again.'});
   if (!window.AJStateOutlines) loadScript('state-outlines.js?v=1').then(()=>{
    const code = geography[state.value]?.[0];
-   if (window.AJStateOutlines?.[code]) options(emblem, 'No state emblem', [['Left shoulder','Left shoulder']]);
+   if (window.AJStateOutlines?.[code]) options(emblem, 'No state emblem', [[window.AJPlacement.state.placement,window.AJPlacement.state.placement]]);
    redraw();
   }).catch(()=>{});
   return {
    locationMark,
-   emblem: () => emblem.value && !badge.value ? {code:geography[state.value]?.[0], placement:emblem.value} : null,
+   setSleeves(enabled) {
+    emblem.disabled = !enabled || emblem.options.length < 2;
+    emblem.closest('label').hidden = !enabled;
+   },
+   emblem: () => emblem.value ? {code:geography[state.value]?.[0], placement:emblem.value} : null,
    approvedBadge: () => approvedBadges.find(item=>item.id===badge.value),
-   details() {
+   details(hasSleeves) {
     const area = geography[state.value];
     const district = selectedCounty();
     return [
      area && 'State: '+area[1],
      district && 'County: '+district[0],
      district?.[1][city.value] && 'City / Town: '+district[1][city.value],
-     emblem.value && 'State emblem: '+emblem.value,
+     hasSleeves && emblem.value && 'State emblem: '+emblem.value,
      this.approvedBadge()?.name && 'Approved agency badge: '+this.approvedBadge().name,
     ].filter(Boolean);
    },

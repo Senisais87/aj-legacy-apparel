@@ -25,3 +25,10 @@
 
 /assets/service-personalization.js
   Cache-Control: no-cache
+
+/assets/placement-policy.js
+  Cache-Control: no-cache
+/assets/model-personalizer.js
+  Cache-Control: no-cache
+/customizer.html
+  Cache-Control: no-cache

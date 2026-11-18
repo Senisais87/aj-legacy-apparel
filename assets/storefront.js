@@ -479,7 +479,7 @@ if(window.AJStore){
       (live||photo).after(front);
      }
      if(/tee|hoodie|quarter-zip/i.test(item.title)){
-      loadPresentation('assets/service-personalization.js?v=shoulder-placement-3',()=>{
+      loadPresentation('assets/service-personalization.js?v=garment-standard-4',()=>{
        const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
        window.AJServicePersonalization.mount(form,{
         department:['law','doc','gym'].includes(actual),
@@ -509,7 +509,7 @@ if(window.AJStore){
    }else{
     store.openItem(item,index);
     if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
-     loadPresentation('assets/service-personalization.js?v=shoulder-placement-3',()=>{
+     loadPresentation('assets/service-personalization.js?v=garment-standard-4',()=>{
       window.AJServicePersonalization.connectProduct(custom, actual);
      });
     }
@@ -613,7 +613,8 @@ if(window.AJStore){
      const settings=preview.querySelector('.customizer');
      window.firstResponderPersonalization=window.AJServicePersonalization.mount(settings,{
       department:true, badge:true, eow:()=>Boolean(window.AJPreviewStripes.responder[requested.replace(/-(tee|hoodie)$/,'')]),
-      style, preview:document.getElementById('livePreview'), update:()=>window.refreshSpec()
+      style, defaultSleeveColor:{fire:stripeColors.Red,ems:stripeColors.White,dispatch:stripeColors.Gold,water:stripeColors.Orange}[category],
+      preview:document.getElementById('livePreview'), update:()=>window.refreshSpec()
      });
      new MutationObserver(window.firstResponderPersonalization.draw).observe(styles,{childList:true,subtree:true,attributes:true});
      const agency=settings.querySelector('#agency');
@@ -637,6 +638,10 @@ if(window.AJStore){
  const form=document.querySelector('.form')||document.querySelector('.customizer');if(form&&!document.querySelector('.aj-checkout'))disabledCheckout(form);
 }
 function loadPresentation(file,ready){
+ if(file.startsWith('assets/service-personalization.js')&&!window.AJPlacement?.drawFlag){
+  loadPresentation('assets/placement-policy.js?v=garment-standard-4',()=>loadPresentation(file,ready));
+  return;
+ }
  const script=document.createElement('script');
  script.src=url(file);
  if(ready)script.addEventListener('load',ready,{once:true});
