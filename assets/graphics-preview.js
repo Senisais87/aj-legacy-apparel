@@ -2,6 +2,13 @@
 (() => {
  const root = new URL('./', document.currentScript.src);
  const black = '#171717';
+ const matthew = new URL('artwork/matthew-5-9.png', root).href;
+ const matthewDesigns = new Set(['shirt2_0-law', 'shirt2_0-doc']);
+ const scriptureBounds = {
+  'concept-law-scripture': [.645,.16,.225,.443],
+  'concept-doc-scripture': [.603,.15,.292,.28],
+ };
+ const scriptureCutoffs = {'concept-law-scripture': [58, 108], 'concept-doc-scripture': [100, 164]};
  function sizeOf(image) {
   return [image.naturalWidth || image.width, image.naturalHeight || image.height];
  }
@@ -18,19 +25,28 @@
  }
  function artwork(v) {
   const [iw, ih] = sizeOf(v.original);
-  const box = v.rawArt ? [0,0,1,1] : v.mainBox ||
+  const box = v.rawArt ? [0,0,1,1] : scriptureBounds[v.artKey] || v.mainBox ||
    (v.originalSide === 'Front' ? [.27,.23,.46,.55] : [.64,.22,.27,.51]);
   const [x,y,w,h] = box.map((n,i) => n * (i % 2 ? ih : iw));
   const ratio = Math.min(1, 680 / Math.max(w,h));
   const cut = layer(Math.ceil(w * ratio), Math.ceil(h * ratio));
   cut.drawImage(v.original,x,y,w,h,0,0,cut.canvas.width,cut.canvas.height);
+  if (v.printAsset) {
+   // The two department variants share the approved Matthew print. The horizontal
+   // rules are decorative, so only the vertical flag stripe takes the service color.
+   const stripes = window.AJPreviewStripes;
+   stripes.paint(cut, ['orange', 'x', [[.45,.04,.11,.24],[.45,.64,.11,.33]]], [v.stripeInk]);
+   stripes.paint(cut, ['orange', 'y', [[.13,.358,.74,.055],[.13,.62,.74,.055]]], ['#d7d9dc']);
+   return cut.canvas;
+  }
   if(v.rawArt && v.artKey !== 'selected-gym-01') return cut.canvas;
   const pixels = cut.getImageData(0,0,cut.canvas.width,cut.canvas.height);
+  const [fabric, ink] = scriptureCutoffs[v.artKey] || [37, 110];
   for(let i=0;i<pixels.data.length;i+=4){
    const r=pixels.data[i],g=pixels.data[i+1],b=pixels.data[i+2];
    const hi=Math.max(r,g,b),lo=Math.min(r,g,b);
    if(v.rawArt && lo>177 && hi-lo<17) pixels.data[i+3]=0;
-   if(!v.rawArt && hi-lo<30) pixels.data[i+3]*=Math.max(0,Math.min(1,(hi-37)/73));
+   if(!v.rawArt && hi-lo<30) pixels.data[i+3]*=Math.max(0,Math.min(1,(hi-fabric)/(ink-fabric)));
   }
   cut.putImageData(pixels,0,0);
   const exclusions={'concept-doc-scripture':[[.71,.375,.09,.13]],'concept-gym-undefeated':[[.34,.80,.34,.07]],'concept-gym-built-to-rise':[[.33,.76,.35,.08]],'concept-gym-legacy-veins':[[.32,.79,.35,.08]],'selected-gym-board-iron-sharpens-iron':[[.43,.51,.13,.16]],'selected-gym-board-strength-through-christ':[[.43,.50,.13,.17]]};
@@ -102,9 +118,15 @@
      drawGarment(context,front,0,size,v.color);
      if(back) drawGarment(context,back,size,size,v.color);
      if(!profile.logoOnly&&!v.logoOnly){
+      const printAsset = matthewDesigns.has(v.artKey) ? get(matthew) : null;
+      if (printAsset && !printAsset.naturalWidth) return false;
       const version=v.original.dataset?.renderVersion;
       const key=[v.artKey,version,v.stripe].join('|');
-      if(key!==artKey){cut=artwork(v);artKey=key}
+      if(key!==artKey){
+       const stripeInk = window.AJStore?.flagColors[v.stripe] || (v.artKey === 'shirt2_0-law' ? '#2870ed' : '#b5b8bd');
+       cut = artwork(printAsset ? {...v, original: printAsset, rawArt: true, printAsset, stripeInk} : v);
+       artKey = key;
+      }
       const [x,y,w,h]=profile.print;
       fit(context,cut,((back&&v.side==='Back'?1:0)+x)*size,y*size,w*size,h*size);
      }

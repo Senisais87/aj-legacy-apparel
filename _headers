@@ -20,3 +20,5 @@
   Cache-Control: no-cache
 /assets/gym-board/aj-legacy-shaker.webp
   Cache-Control: no-cache
+/assets/graphics-preview.js
+  Cache-Control: no-cache
