@@ -35,7 +35,7 @@
    // The two department variants share the approved Matthew print. The horizontal
    // rules are decorative, so only the vertical flag stripe takes the service color.
    const stripes = window.AJPreviewStripes;
-   stripes.paint(cut, ['orange', 'x', [[.45,.04,.11,.24],[.45,.64,.11,.33]]], [v.stripeInk]);
+   stripes.paint(cut, ['orange', 'x', [[.45,.04,.11,.28],[.45,.65,.11,.33]]], [v.stripeInk]);
    stripes.paint(cut, ['orange', 'y', [[.13,.358,.74,.055],[.13,.62,.74,.055]]], ['#d7d9dc']);
    return cut.canvas;
   }
@@ -49,6 +49,23 @@
    if(!v.rawArt && hi-lo<30) pixels.data[i+3]*=Math.max(0,Math.min(1,(hi-fabric)/(ink-fabric)));
   }
   cut.putImageData(pixels,0,0);
+  if (v.artKey === 'concept-law-scripture') {
+   // Retain the dark mountain and shadow detail inside the printed shield.
+   const outline = [[.754,.176],[.837,.224],[.833,.309],[.819,.379],[.787,.436],
+    [.753,.474],[.719,.434],[.686,.379],[.673,.310],[.670,.225]];
+   cut.save();
+   cut.beginPath();
+   outline.forEach(([nx, ny], index) => {
+    const px = (nx * iw - x) * ratio, py = (ny * ih - y) * ratio;
+    if (index === 0) cut.moveTo(px,py);
+    else cut.lineTo(px,py);
+   });
+   cut.closePath();
+   cut.clip();
+   cut.globalCompositeOperation = 'destination-over';
+   cut.drawImage(v.original,x,y,w,h,0,0,cut.canvas.width,cut.canvas.height);
+   cut.restore();
+  }
   const exclusions={'concept-doc-scripture':[[.71,.375,.09,.13]],'concept-gym-undefeated':[[.34,.80,.34,.07]],'concept-gym-built-to-rise':[[.33,.76,.35,.08]],'concept-gym-legacy-veins':[[.32,.79,.35,.08]],'selected-gym-board-iron-sharpens-iron':[[.43,.51,.13,.16]],'selected-gym-board-strength-through-christ':[[.43,.50,.13,.17]]};
   for(const [ex,ey,ew,eh] of exclusions[v.artKey]||[])cut.clearRect((ex*iw-x)*ratio,(ey*ih-y)*ratio,ew*iw*ratio,eh*ih*ratio);
   return cut.canvas;
