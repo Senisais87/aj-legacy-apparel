@@ -479,13 +479,15 @@ if(window.AJStore){
       (live||photo).after(front);
      }
      if(/tee|hoodie|quarter-zip/i.test(item.title)){
-      loadPresentation('assets/service-personalization.js?v=badge-chest-2',()=>{
+      loadPresentation('assets/service-personalization.js?v=shoulder-placement-3',()=>{
        const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
        window.AJServicePersonalization.mount(form,{
         department:['law','doc','gym'].includes(actual),
         badge:['law','doc'].includes(actual),
         eow:()=>actual==='limited'?memorialEow.has(boardId):['law','doc'].includes(actual)&&Boolean(boardStripes[boardId]),
-        style:()=>style, stripePalette:stripeColors, preview:live||photo, side:()=>boardBack.has(boardId)?'Back':'Front'
+        style:()=>style, stripePalette:stripeColors,
+        defaultSleeveColor:actual==='law'?stripeColors.Blue:actual==='doc'?stripeColors['Silver / gray']:undefined,
+        preview:live||photo, side:()=>boardBack.has(boardId)?'Back':'Front'
        });
       });
      }
@@ -507,7 +509,7 @@ if(window.AJStore){
    }else{
     store.openItem(item,index);
     if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
-     loadPresentation('assets/service-personalization.js?v=badge-chest-2',()=>{
+     loadPresentation('assets/service-personalization.js?v=shoulder-placement-3',()=>{
       window.AJServicePersonalization.connectProduct(custom, actual);
      });
     }

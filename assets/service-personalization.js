@@ -90,7 +90,7 @@
   return names.map(name => palette[name]).filter(Boolean);
  }
  function mount(form, {department, eow = () => false, style, preview, side = () => 'Front',
-   paired = () => false, badge, update, onProof, stripePalette = sleeveStripeColors}) {
+   paired = () => false, badge, update, onProof, stripePalette = sleeveStripeColors, defaultSleeveColor}) {
   const group = document.createElement('fieldset');
   group.className = 'aj-personalization-fields';
   const legend = document.createElement('legend');
@@ -221,9 +221,11 @@
    const reserved=badgeReserved?[[badgePolicy.x-.07,badgePolicy.y-.07,.14,.14]]:[];
    const zones = [reserved, []];
    const sleeve = front || back;
-   if (sleeve && currentStyle !== 'Tank Top') paintFlag(context, sleeve, !front, zones[front ? 0 : 1], selectedSleeveColors(form, stripePalette));
+   const colors = selectedSleeveColors(form, stripePalette);
+   if (!colors.length && defaultSleeveColor) colors.push(defaultSleeveColor);
+   if (sleeve && currentStyle !== 'Tank Top') paintFlag(context, sleeve, !front, zones[front ? 0 : 1], colors, currentStyle);
    const emblem = geography?.emblem();
-   if (emblem) paintState(context, emblem, front, back, zones);
+   if (emblem && currentStyle !== 'Tank Top') paintState(context, emblem, front, back, zones, currentStyle);
    const agencyBadge = geography?.approvedBadge();
    if (agencyBadge && front) {
     const art = image(new URL(agencyBadge.artwork, assetRoot).href);
@@ -237,7 +239,9 @@
     }
    }
    paint(context, entries, surfaces, zones);
-   canvas.setAttribute('aria-label', 'Customized product with U.S. flag on the wearer’s right shoulder. ' + entries.map(mark => mark.label + ': ' + mark.value + ', ' + mark.placement).join('; '));
+   const placementDescription = currentStyle === 'Tank Top' ? '' :
+    ' Thin-line flag on the wearer’s right sleeve, stars forward.' + (emblem ? ' State emblem on the wearer’s left sleeve.' : '');
+   canvas.setAttribute('aria-label', 'Customized product.' + placementDescription + ' ' + entries.map(mark => mark.label + ': ' + mark.value + ', ' + mark.placement).join('; '));
    onProof?.(canvas);
   }
   group.addEventListener('input', () => {draw(); update?.()});
@@ -289,6 +293,7 @@
     },
     style: () => style.value,
     stripePalette: window.AJStore.flagColors,
+    defaultSleeveColor: collection === 'law' ? sleeveStripeColors.Blue : collection === 'doc' ? sleeveStripeColors.Silver : undefined,
     preview,
     side: () => window.AJGarments.styles[style.value]?.logoOnly ? 'Front' : preview.dataset.placement || 'Front',
     paired: () => preview.dataset.previewEngine === 'live-product-artwork' && preview.width > preview.height * 1.5,
@@ -315,14 +320,18 @@
   attach();
   new MutationObserver(attach).observe(screen, {subtree: true, childList: true});
  }
- function paintFlag(context, surface, back, zones, colors) {
+ // Long sleeves narrow at the top. Position both marks slightly lower and inboard on hoodies.
+ function sleevePosition(style, wearerRight, back) {
+  const offset = style === 'Hoodie' ? .27 : .23;
+  return [wearerRight !== back ? offset : 1 - offset, style === 'Hoodie' ? .435 : .365];
+ }
+ function paintFlag(context, surface, back, zones, colors, style) {
   const [left, top, width, height] = surface;
   const flagWidth = Math.min(width, height) * .095;
   const flagHeight = flagWidth / 1.9;
-  const center = .23;
-  const sleeveX = back ? 1 - center : center;
+  const [sleeveX, sleeveCenterY] = sleevePosition(style, true, back);
   const x = left + width * sleeveX - flagWidth / 2;
-  const sleeveY = logoSafeY(sleeveX, .365, flagWidth/width, flagHeight/height, zones);
+  const sleeveY = logoSafeY(sleeveX, sleeveCenterY, flagWidth/width, flagHeight/height, zones);
   if (sleeveY === null) return;
   const y = top + height * sleeveY - flagHeight / 2;
   const stripe = flagHeight / 13;
@@ -361,15 +370,15 @@
   });
   context.restore();
  }
- function paintState(context, {code, placement}, front, back, zones) {
+ function paintState(context, {code, placement}, front, back, zones, style) {
   const shape = window.AJStateOutlines?.[code];
   const surface = front || (placement === 'Left shoulder' ? back : null);
   if (!shape || !surface) return;
   const [left, top, width, height] = surface;
   const [x, y, w, h] = shape.box;
-  const center = front ? .77 : .23;
+  const [center, sleeveCenterY] = sleevePosition(style, false, !front);
   const scale = Math.min(width, height) * .073 / Math.max(w, h);
-  const centerY = logoSafeY(center, .31, w*scale/width+.008, h*scale/height+.008, zones[front ? 0 : 1]);
+  const centerY = logoSafeY(center, sleeveCenterY, w*scale/width+.008, h*scale/height+.008, zones[front ? 0 : 1]);
   if (centerY === null) return;
   context.save();
   context.translate(left + center * width, top + centerY * height);
