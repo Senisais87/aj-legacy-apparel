@@ -196,9 +196,19 @@ const boardMerch={
   ["dispatch-cap", "911 Dispatch Cap"],
  ],
 };
-const memorialEow=new Set(['their-watch','memorial-shield-hoodie','psalm-34','memorial-chest-logo-tee','gym-chest-logo-tee']);
+
 const boardBack=new Set(['vertical-flag-hoodie','corrections-flag-hoodie','their-watch','psalm-34']);
+const reviewArt = {
+ 'orange-line-flag-top':'trt.webp', 'corrections-flag-hoodie':'corrections.webp',
+ 'peacemakers-tee':'peacemakers.webp', 'their-watch':'their-watch.webp'
+};
+const reviewFile = file => url('assets/art-review/'+file);
 const boardImage=id=>url('assets/merch-individual/'+id+'.webp');
+const revisedCards = {
+ 'approved-eclipse-memorial':'016-card.webp',
+ 'selected-gym-07-quote-proof':'055-card.webp',
+ 'selected-gym-board-discipline-builds-freedom':'070-card.webp'
+};
 const stripeColors={
  'Blue':'#1769aa','Silver / gray':'#a6a8ab','Orange':'#f47721','Red':'#c8242b',
  'Green':'#39844c','Purple':'#8548a9','White':'#f4f4f4','Gold':'#e3b126','Monochrome':'#737373'
@@ -220,7 +230,13 @@ const boardStripes={
 
 function boardControls(item,photo,form,thumbnail=false){
  const id=item.img.slice('board-merch-'.length);
- const stripe=boardStripes[id];
+ const revised = reviewArt[id];
+ const recipes = {
+  'orange-line-flag-top':['orange','x',[[.40,0,.11,1]]],
+  'peacemakers-tee':['blue','x',[[.33,0,.11,1]]],
+  'their-watch':['blue','x',[[.49,0,.10,1]]]
+ };
+ const stripe=revised ? recipes[id] : boardStripes[id];
  const trt=id==='trt-tee'||id==='orange-line-flag-top';
  const upper=/tee|hoodie|quarter-zip|flag-top/i.test(item.title+' '+id);
  if(thumbnail&&!upper||!stripe&&!trt&&!upper)return;
@@ -272,7 +288,7 @@ function boardControls(item,photo,form,thumbnail=false){
   if(stripe&&select&&select.value.toLowerCase()!==stripe[0])window.AJPreviewStripes.paint(ctx,stripe,[stripeColors[select.value]]);
   if(upper){
    const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
-   const drawn=upperEngine.draw({style,source:art,original:art,compose:true,logoOnly,side:boardBack.has(id)?'Back':'Front',originalSide:'Front',artKey:item.img,stripe:select?.value,mainBox:crops[id]||[.27,.17,.46,.4]});
+   const drawn=upperEngine.draw({style,source:art,original:art,compose:true,logoOnly,side:boardBack.has(id)?'Back':'Front',originalSide:'Front',rawArt:Boolean(revised),artKey:item.img,stripe:select?.value,mainBox:crops[id]||[.27,.17,.46,.4]});
    if(!drawn)return;
    if(thumbnail){
     photo.src=canvas.toDataURL();
@@ -290,7 +306,7 @@ function boardControls(item,photo,form,thumbnail=false){
   }
  }
  source.onload=draw;
- source.src=boardImage(id);
+ source.src=revised ? reviewFile(revised) : boardImage(id);
  select?.addEventListener('change',draw);
  personal?.addEventListener('input',draw);
  document.addEventListener('aj-studio-merch-ready',()=>{
@@ -341,7 +357,7 @@ if(window.AJStore){
   for(const [file,title] of selectedGymDesigns){
    const img='selected-'+file.split('.')[0];
    const quoteDesign=file.endsWith('.svg');
-   store.registerArtwork(img,url('assets/gym-selected/'+file));
+   store.registerArtwork(img,quoteDesign?reviewFile('gym-07.webp'):url('assets/gym-selected/'+file));
    store.lines.gym.push({
     img,title,kind:'shirt',flag:'none',concept:true,quoteDesign,
     verse:quoteDesign?'Do the things you don’t want to do to show your body that your mind is the boss.':'',
@@ -377,8 +393,8 @@ if(window.AJStore){
   ];
   for(const [key,title,style,side] of boardProducts){
    const img='selected-gym-board-'+key;
-   store.registerArtwork(img,url('assets/gym-board/'+key+'.webp'));
-   store.lines.gym.push({img,title,style,side,flag:'none',concept:Boolean(style),accessory:!style,
+   store.registerArtwork(img,key==='discipline-builds-freedom'?reviewFile('discipline.webp'):url('assets/gym-board/'+key+'.webp'));
+   store.lines.gym.push({img,title,style,side,rawArt:key==='discipline-builds-freedom',flag:'none',concept:Boolean(style),accessory:!style,
     detail:style?'Individual design from the Gym Attire collection banner.':'Individual detail from the Gym Attire collection banner.'});
   }
  }
@@ -410,6 +426,12 @@ if(window.AJStore){
   // The legacy renderer updates hashes. Keep the explicit route authoritative.
   history.replaceState(null,'',url('index.html?'+params.toString()));
   const entries=store.lines[actual];
+  const drew = entries.find(item => item.img === 'approved-eclipse-memorial');
+  if(drew){
+   store.registerArtwork(drew.img,reviewFile('eclipse.webp'));
+   drew.rawArt=true;
+   drew.side='Back';
+  }
   const tiles=[...grid.children];
   const variantIds=new Set(Object.values(boardFamilies).flatMap(family=>family.options.slice(1).map(([id])=>id)));
   for(const [index,item] of entries.entries()){
@@ -425,7 +447,12 @@ if(window.AJStore){
     image.replaceWith(thumbnail);
     boardControls(item,thumbnail,null,true);
    }
-   if(item.img.startsWith('selected-gym-')&&!item.accessory)image.src=boardImage(item.img);
+   if(revisedCards[item.img]){
+    const revisedImage=image.cloneNode(false);
+    revisedImage.src=reviewFile(revisedCards[item.img]);
+    image.replaceWith(revisedImage);
+   }
+   else if(item.img.startsWith('selected-gym-')&&!item.accessory)image.src=boardImage(item.img);
    if(family)tile.querySelector('strong').textContent=family.title;
    if(item.garmentGroup==='logo'&&item.style==='Crewneck')tile.querySelector('strong').textContent='AJ Legacy Shield Tops';
    if(item.garmentGroup==='lower'&&item.style==='Shorts')tile.querySelector('strong').textContent='AJ Legacy Shield Bottoms';
@@ -478,20 +505,21 @@ if(window.AJStore){
       photo.alt=item.title+' — back design';
       (live||photo).after(front);
      }
-     if(/tee|hoodie|quarter-zip/i.test(item.title)){
+     if(/tee|hoodie|quarter-zip|flag-top/i.test(item.title)){
       loadPresentation('assets/service-personalization.js?v=garment-standard-4',()=>{
        const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
        window.AJServicePersonalization.mount(form,{
         department:['law','doc','gym'].includes(actual),
         badge:['law','doc'].includes(actual),
-        eow:()=>actual==='limited'?memorialEow.has(boardId):['law','doc'].includes(actual)&&Boolean(boardStripes[boardId]),
+        eow:()=>window.AJServicePersonalization.allowsEow(actual, boardId),
         style:()=>style, stripePalette:stripeColors,
-        defaultSleeveColor:actual==='law'?stripeColors.Blue:actual==='doc'?stripeColors['Silver / gray']:undefined,
+        defaultSleeveColor:boardId==='trt-tee'||boardId==='orange-line-flag-top'?stripeColors.Orange:actual==='law'?stripeColors.Blue:actual==='doc'?stripeColors['Silver / gray']:undefined,
         preview:live||photo, side:()=>boardBack.has(boardId)?'Back':'Front'
        });
       });
      }
     }
+    if(!item.boardMerch || !/tee|hoodie|quarter-zip|flag-top/i.test(item.title)) mountItemEow(form, photo, actual, boardId || item.img);
     if(family){
      const label=document.createElement('label');
      label.textContent=family.label;
@@ -510,18 +538,32 @@ if(window.AJStore){
     store.openItem(item,index);
     if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
      loadPresentation('assets/service-personalization.js?v=garment-standard-4',()=>{
-      window.AJServicePersonalization.connectProduct(custom, actual);
+      window.AJServicePersonalization.connectProduct(custom, actual, () => {
+       const select = custom.querySelector('#design-variation');
+       return select ? item.variations[Number(select.value)] : item;
+      });
      });
+    }else{
+     const form = custom.querySelector('#custom-form');
+     const preview = custom.querySelector('#garment-preview canvas, #selected-product-image img, #selected-product-image canvas');
+     if(preview) mountItemEow(form, preview, actual, item.img);
     }
     if(item.img==='selected-gym-board-aj-legacy-training-tee'){
      const color=document.querySelector('#custom-form #color');
      if(color){color.value='Gray';color.dispatchEvent(new Event('change',{bubbles:true}));}
     }
 
+    if(item.eventApproved){
+     const reminder=document.querySelector('.sponsor-pending p');
+     if(reminder) reminder.textContent='Sponsor artwork will be added after January 1, 2027.';
+    }
     if(item.side==='Back'){
      const placement=document.getElementById('design-side');
-     placement.value=item.side;
-     placement.dispatchEvent(new Event('change',{bubbles:true}));
+     if(placement){
+      placement.value=item.side;
+      placement.disabled=item.img==='approved-eclipse-memorial';
+      placement.dispatchEvent(new Event('change',{bubbles:true}));
+     }
     }
    }
    // The shared placement studio does not have these artwork files in its design picker.
@@ -593,6 +635,7 @@ if(window.AJStore){
     const image=document.createElement('img');image.src=boardImage(id);image.alt=title;image.style.maxWidth='100%';
     product.append(back,heading,image);
     wrap.replaceChildren(product);
+    mountItemEow(product.appendChild(document.createElement('div')), image, 'first', id);
     disabledCheckout(product);
     return;
    }
@@ -612,7 +655,7 @@ if(window.AJStore){
      };
      const settings=preview.querySelector('.customizer');
      window.firstResponderPersonalization=window.AJServicePersonalization.mount(settings,{
-      department:true, badge:true, eow:()=>Boolean(window.AJPreviewStripes.responder[requested.replace(/-(tee|hoodie)$/,'')]),
+      department:true, badge:true, eow:()=>true,
       style, defaultSleeveColor:{fire:stripeColors.Red,ems:stripeColors.White,dispatch:stripeColors.Gold,water:stripeColors.Orange}[category],
       preview:document.getElementById('livePreview'), update:()=>window.refreshSpec()
      });
@@ -637,6 +680,12 @@ if(window.AJStore){
 
  const form=document.querySelector('.form')||document.querySelector('.customizer');if(form&&!document.querySelector('.aj-checkout'))disabledCheckout(form);
 }
+function mountItemEow(form, preview, collection, key){
+ loadPresentation('assets/service-personalization.js?v=garment-standard-4',()=>{
+  const service = window.AJServicePersonalization;
+  if(service.allowsEow(collection,key)) service.mount(form,{itemOnly:true,eow:()=>true,style:()=> 'Item',preview});
+ });
+}
 function loadPresentation(file,ready){
  if(file.startsWith('assets/service-personalization.js')&&!window.AJPlacement?.drawFlag){
   loadPresentation('assets/placement-policy.js?v=garment-standard-4',()=>loadPresentation(file,ready));
@@ -659,6 +708,7 @@ loadPresentation('assets/studio-merch.js?v=3',()=>{
    const original=tile.querySelector('img');
    if(!item||!original||item.boardMerch&&/tee|hoodie|quarter-zip|flag-top/i.test(item.title+' '+item.img))continue;
    if(!item.accessory&&!/hat|cap|headwear/i.test(item.title)){store.renderThumbnail(original,item,line);continue;}
+   if(revisedCards[item.img])continue;
    const source=item.img.startsWith('selected-gym-')&&!item.accessory?boardImage(item.img):assets[item.img];
    const cutout=studio.source(source,item.img);
    if(!cutout)continue;

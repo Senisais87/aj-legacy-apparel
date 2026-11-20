@@ -130,7 +130,8 @@
      if([front,back,logo].some(image=>image&&!image.naturalWidth))return false;
      const size=oneSide?540:420;
      canvas.width=size*(oneSide?1:2);
-     canvas.height=size+(profile.lower?0:118);
+     const shoulderBrand=['approved-eclipse-memorial','selected-gym-07-quote-proof'].includes(v.artKey);
+     canvas.height=size+(profile.lower||shoulderBrand?0:118);
      const context=canvas.getContext('2d');
      drawGarment(context,front,0,size,v.color);
      if(back) drawGarment(context,back,size,size,v.color);
@@ -151,7 +152,15 @@
       const [x,y,w]=profile.logo;
       fit(context,logo,x*size,y*size,w*size,w*size);
      }
-     if(!profile.lower)window.AJPlacement.insideLabel(context,logo,0,size+28,canvas.width,90);
+     if(shoulderBrand){
+      fit(context,logo,size*.76,size*.34,size*.095,size*.095);
+      if(v.artKey==='approved-eclipse-memorial'){
+       context.fillStyle='#fff';
+       context.font='bold '+Math.round(size*.026)+'px system-ui';
+       context.textAlign='center';
+       context.fillText('SGT. FAUGHT',size*.36,size*.30,size*.17);
+      }
+     }else if(!profile.lower)window.AJPlacement.insideLabel(context,logo,0,size+28,canvas.width,90);
      if(v.text&&!profile.logoOnly){
       context.fillStyle=v.ink;
       context.font='bold 13px system-ui';
@@ -175,8 +184,9 @@
      context.globalCompositeOperation='source-over';
     }
     canvas.dataset.previewEngine=v.compose?'garment-artwork-composite':'live-product-artwork';
-    canvas.dataset.logoSide=window.AJGarments.styles[v.style]?.lower?'Front':'Inside';
-    canvas.dataset.brandPlacement=window.AJPlacement.brand.placement;
+    const shoulderBrand=['approved-eclipse-memorial','selected-gym-07-quote-proof'].includes(v.artKey);
+    canvas.dataset.logoSide=shoulderBrand?'Front':window.AJGarments.styles[v.style]?.lower?'Front':'Inside';
+    canvas.dataset.brandPlacement=shoulderBrand?'Wearer-left shoulder':window.AJPlacement.brand.placement;
     canvas.dataset.badgePlacement='Wearer-left chest';
     canvas.dataset.bodyHeight=v.compose?String(window.AJGarments.styles[v.style]?.lower||window.AJGarments.styles[v.style]?.logoOnly?540:420):String(canvas.height);
     canvas.dataset.garment=v.style;

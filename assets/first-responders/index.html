@@ -23,6 +23,9 @@ $('productTitle').textContent=itemLabel(item.replace(/-(tee|hoodie)$/, '')).toUp
 </script><script>
 const thinLines=[['Blue','Law Enforcement','#1769AA'],['Silver','Corrections','#A6A8AB'],['White','EMS / Paramedics','#F4F4F4'],['Red','Fire & Rescue','#C8242B'],['Gold','Dispatch','#E3B126'],['Green','Custom / Other','#527B48'],['Orange','DOC TRT / Search & Rescue','#F47721'],['Purple','K-9','#8548A9']];
 const swatches=document.getElementById('swatches');
+swatches.addEventListener('input', ({target})=>{
+ if(target.name==='thinLine' && target.checked) for(const option of swatches.querySelectorAll('input[name=thinLine]')) if(option!==target) option.checked=false;
+},true);
 swatches.innerHTML=thinLines.map(([name,service,hex])=>`<label title="${service}"><input type="checkbox" name="thinLine" value="${name}"><span class="dot" style="background:${hex}"></span>${name}</label>`).join('');
 function specification(){const colors=[...document.querySelectorAll('input[name=thinLine]:checked')].map(x=>x.value);const val=id=>document.getElementById(id).value.trim();const title=document.getElementById('productTitle').textContent;return ['AJ LEGACY — PRELAUNCH CUSTOMIZATION','Design: '+title,'Garment: '+(document.getElementById('photo-style')?.value||'Collection default')+' / '+val('garmentColor'),'Size: '+val('size'),'Placement: '+val('placement'),'Thin lines: '+(colors.join(', ')||defaultStripe[stripeKey()]||'Not available for this design'),...(window.firstResponderPersonalization?.details()||[]),'Front text: '+(val('frontText')||'None'),'Back text: '+(val('backText')||'None'),'STATUS: Concept only; not a print-ready proof or order.'].join('\n')}
 function refreshSpec(){document.getElementById('customSummary').textContent=specification()}

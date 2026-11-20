@@ -26,13 +26,16 @@
   'County / City': [...chest, shoulders, ...hems],
  };
  const boxes = {
+  'Item front': [0, .50, .68, .25],
   'Right chest': [0, .36, .30, .13],
   [shoulders]: [1, .50, .32, .33],
   [spine]: [1, .50, .55, .26],
   'Bottom front': [0, .50, .77, .32],
   'Bottom back': [1, .50, .77, .32],
  };
- const supportedStyles = ['T-shirt', 'Hoodie'];
+ const serviceCollections = new Set(['law', 'doc', 'first']);
+ const memorialEow = new Set(['concept-memorial-faith-hoodie', 'concept-memorial-carry', 'their-watch', 'memorial-shield-hoodie', 'psalm-34', 'memorial-chest-logo-tee', 'memorial-patch-cap', 'memorial-line-cap', 'memorial-shield-cap', 'memorial-tumbler', 'memorial-plaque', 'aj-crewneck', 'aj-polo', 'aj-half-zip']);
+ const allowsEow = (collection, key) => serviceCollections.has(collection) || collection === 'limited' && memorialEow.has(key);
  // The brand is inside the back collar; no exterior logo exclusion zone exists.
  function logoZones() { return []; }
  function clearOfLogo(rect, zones) {
@@ -90,7 +93,7 @@
   return names.map(name => palette[name]).filter(Boolean);
  }
  function mount(form, {department, eow = () => false, style, preview, side = () => 'Front',
-   paired = () => false, badge, update, onProof, stripePalette = sleeveStripeColors, defaultSleeveColor}) {
+   paired = () => false, badge, itemOnly = false, shoulderBrand = false, sleeveFlag = true, update, onProof, stripePalette = sleeveStripeColors, defaultSleeveColor}) {
   const group = document.createElement('fieldset');
   group.className = 'aj-personalization-fields';
   const legend = document.createElement('legend');
@@ -98,8 +101,12 @@
   const logoNote = document.createElement('p');
   logoNote.className = 'note';
   logoNote.textContent = 'AJ logo: inside, directly below the back collar. Agency badges: wearer’s left chest (viewer’s right). Names and rank stay clear of the badge.';
-  group.append(legend, logoNote);
-  const fields = ['Name', 'Rank', ...(department ? ['Facility / Department'] : []), ...(badge ? ['Unit'] : []), 'EOW date'].map(label => {
+  group.append(legend);
+  if (!itemOnly) {
+   if (shoulderBrand) logoNote.textContent = 'AJ logo: wearer’s left shoulder. Agency badges: Coming Soon.';
+   group.append(logoNote);
+  }
+  const fields = (itemOnly ? ['EOW date'] : ['Name', 'Rank', ...(department ? ['Facility / Department'] : []), ...(badge ? ['Unit'] : []), 'EOW date']).map(label => {
    const row = document.createElement('div');
    const caption = document.createElement('label');
    caption.textContent = label;
@@ -112,9 +119,10 @@
    const position = document.createElement('label');
    position.textContent = label + ' placement';
    const select = document.createElement('select');
-   for (const location of locations[label]) select.add(new Option(location));
+   for (const location of itemOnly ? ['Item front'] : locations[label]) select.add(new Option(location));
    select.value = label === 'Rank' ? 'Right chest' : label === 'EOW date' ? 'Bottom back' :
     label === 'Facility / Department' ? shoulders : 'Right chest';
+   if (itemOnly) select.value = 'Item front';
    position.append(select);
    row.append(caption, position);
    group.append(row);
@@ -145,9 +153,8 @@
    return images.get(path);
   }
   function marks() {
-   const currentStyle = style();
    const entries = fields.filter(({label, input}) => input.value.trim() &&
-    (label !== 'EOW date' || eow() && supportedStyles.includes(currentStyle)))
+    (label !== 'EOW date' || eow()))
     .map(({label, input, select}) => ({label, value: input.value.trim(), placement: select.value}));
    const location = geography?.locationMark();
    if (location) entries.push(location);
@@ -156,9 +163,9 @@
   function draw() {
    if (!proof.isConnected) return;
    const currentStyle = style();
-   geography?.setSleeves(window.AJPlacement.hasSleeves(currentStyle));
+   geography?.setSleeves(!shoulderBrand && window.AJPlacement.hasSleeves(currentStyle));
    for (const {label, row} of fields) {
-    row.hidden = label === 'EOW date' && !(eow() && supportedStyles.includes(currentStyle));
+    row.hidden = label === 'EOW date' && !(eow());
    }
    const badgeReserved=Boolean(geography?.approvedBadge());
    if(badgeReserved){
@@ -169,7 +176,8 @@
    const sourceWidth = preview.tagName === 'IMG' ? preview.naturalWidth : preview.width;
    const sourceHeight = preview.tagName === 'IMG' ? preview.naturalHeight : preview.height;
    proof.hidden = !sourceWidth || !sourceHeight ||
-    (preview.tagName === 'CANVAS' && !preview.dataset.previewEngine && !preview.dataset.personalizationSource);
+    (!itemOnly && preview.tagName === 'CANVAS' && !preview.dataset.previewEngine && !preview.dataset.personalizationSource);
+   if (itemOnly && !entries.length) proof.hidden=true;
    preview.classList.toggle('aj-combined-source', !proof.hidden);
    if (proof.hidden) return;
    const size = 540;
@@ -220,11 +228,11 @@
    const front = surfaces[0], back = surfaces[1];
    const badgePolicy=window.AJPlacement.badge;
    const reserved=badgeReserved?[[badgePolicy.x-.07,badgePolicy.y-.07,.14,.14]]:[];
-   const zones = [reserved, []];
+   const zones = [shoulderBrand ? [...reserved,[.70,.27,.13,.14]] : reserved, []];
    const sleeve = front || back;
    const colors = selectedSleeveColors(form, stripePalette);
    if (!colors.length && defaultSleeveColor) colors.push(defaultSleeveColor);
-   if (sleeve && window.AJPlacement.hasSleeves(currentStyle)) paintFlag(context, sleeve, !front, zones[front ? 0 : 1], colors, currentStyle, engine === 'live-garment-personalization');
+   if (!itemOnly && sleeveFlag && sleeve && window.AJPlacement.hasSleeves(currentStyle)) paintFlag(context, sleeve, !front, zones[front ? 0 : 1], colors, currentStyle, engine === 'live-garment-personalization');
    const emblem = window.AJPlacement.hasSleeves(currentStyle) ? geography?.emblem() : null;
    if (emblem) paintState(context, emblem, front, back, zones, currentStyle, engine === 'live-garment-personalization');
    const agencyBadge = geography?.approvedBadge();
@@ -257,14 +265,14 @@
   draw();
   function details() {
    const entries = marks().map(mark => mark.label + ': ' + mark.value + ' · ' + mark.placement);
-   entries.push('AJ brand: inside directly below back collar', 'Agency badge placement: wearer-left chest (viewer-right)');
-   if (window.AJPlacement.hasSleeves(style())) entries.push('U.S. flag: wearer-right upper sleeve, stars forward');
+   if (!itemOnly) entries.push(shoulderBrand ? 'AJ brand: wearer-left shoulder' : 'AJ brand: inside directly below back collar', 'Agency badge placement: wearer-left chest (viewer-right)');
+   if (!itemOnly && sleeveFlag && window.AJPlacement.hasSleeves(style())) entries.push('U.S. flag: wearer-right upper sleeve, stars forward');
    entries.push(...(geography?.details(window.AJPlacement.hasSleeves(style())) || []));
    return entries;
   }
   return {draw, details, snapshot: () => proof.hidden ? null : canvas.toDataURL('image/png')};
  }
- function connectProduct(screen, collection) {
+ function connectProduct(screen, collection, resolveItem) {
   let connectedForm;
   function attach() {
    const form = screen.querySelector('#custom-form');
@@ -290,14 +298,12 @@
    const personalization = mount(form, {
     department: ['law', 'doc', 'gym'].includes(collection),
     badge: ['law', 'doc'].includes(collection),
-    eow: () => {
-     if (!['law', 'doc'].includes(collection)) return false;
-     const control = form.querySelector('#flag');
-     return control && !control.closest('label').hidden;
-    },
+    eow: () => allowsEow(collection, resolveItem().img),
+    shoulderBrand: ['approved-eclipse-memorial', 'selected-gym-07-quote-proof'].includes(resolveItem().img),
+    sleeveFlag: resolveItem().img !== 'selected-gym-board-discipline-builds-freedom',
     style: () => style.value,
     stripePalette: window.AJStore.flagColors,
-    defaultSleeveColor: collection === 'law' ? sleeveStripeColors.Blue : collection === 'doc' ? sleeveStripeColors.Silver : undefined,
+    defaultSleeveColor: resolveItem().img === 'approved-eclipse-memorial' || resolveItem().flag === 'orange' ? sleeveStripeColors.Orange : collection === 'law' ? sleeveStripeColors.Blue : collection === 'doc' ? sleeveStripeColors.Silver : undefined,
     preview,
     side: () => window.AJGarments.styles[style.value]?.logoOnly ? 'Front' : preview.dataset.placement || 'Front',
     paired: () => preview.dataset.previewEngine === 'live-product-artwork' && preview.width > preview.height * 1.5,
@@ -465,5 +471,5 @@
    },
   };
  }
- window.AJServicePersonalization = {mount, connectProduct};
+ window.AJServicePersonalization = {mount, connectProduct, allowsEow};
 })();
