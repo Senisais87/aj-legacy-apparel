@@ -206,7 +206,7 @@ const reviewFile = file => url('assets/art-review/'+file);
 const boardImage=id=>url('assets/merch-individual/'+id+'.webp');
 const revisedCards = {
  'approved-eclipse-memorial':'016-card.webp',
- 'selected-gym-07-quote-proof':'055-card.webp?v=55-eclipse-1',
+ 'selected-gym-07-quote-proof':'055-back-card.webp',
  'selected-gym-board-discipline-builds-freedom':'070-card.webp'
 };
 const stripeColors={
@@ -360,6 +360,7 @@ if(window.AJStore){
    store.registerArtwork(img,quoteDesign?reviewFile('gym-07.webp?v=55-eclipse-1'):url('assets/gym-selected/'+file));
    store.lines.gym.push({
     img,title,kind:'shirt',flag:'none',concept:true,rawArt:quoteDesign,quoteDesign,
+    side:quoteDesign?'Back':undefined,
     verse:quoteDesign?'Do the things you don’t want to do to show your body that your mind is the boss.':'',
     detail:quoteDesign?'Drew’s words on training and discipline.':'Selected Gym Attire artwork.',
    });
@@ -561,7 +562,7 @@ if(window.AJStore){
      const placement=document.getElementById('design-side');
      if(placement){
       placement.value=item.side;
-      placement.disabled=item.img==='approved-eclipse-memorial';
+      placement.disabled=item.img==='approved-eclipse-memorial'||Boolean(item.quoteDesign);
       placement.dispatchEvent(new Event('change',{bubbles:true}));
      }
     }
