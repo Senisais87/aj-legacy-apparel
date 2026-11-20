@@ -9,7 +9,8 @@ const isolatedProofs=new Set([
 ]);
 const proofImage=(design,garment)=>{
  const key=design+'-'+garment;
- return isolatedProofs.has(key)?'individual/'+key+'.webp':null;
+ const revision=key==='dispatch-flag-tee'||key==='dispatch-headset-tee'?'?v=artwork-021-022-055':'';
+ return isolatedProofs.has(key)?'individual/'+key+'.webp'+revision:null;
 };
 const itemLabel=n=>n.replace('water-life','Water Rescue — Life Ring').replace('water-swift','Swiftwater Rescue').replaceAll('-',' ');const $=id=>document.getElementById(id);function setGarment(value){type=value;render()}function render(){ $('tabs').innerHTML=Object.entries(groups).map(([k,v])=>`<button aria-pressed="${k===group}" onclick="group='${k}';item=groups['${k}'].names[0];render()">${v.label}</button>`).join('');$('grid').innerHTML=groups[group].names.map(n=>`<article class="tile"><img loading="lazy" src="${n.startsWith('water-')?n+'.png':proofImage(n,'tee')||n+'-tee.jpg'}" alt="${n.replaceAll('-',' ')} t-shirt"><h3>${itemLabel(n).toUpperCase()}</h3><button onclick="item='${n}';if(item.startsWith('water-'))setGarment(item.endsWith('hoodie')?'hoodie':'tee');render();document.querySelector('.preview').scrollIntoView({behavior:'smooth'})">Customize Preview</button></article>`).join('');$('types').innerHTML=['tee','hoodie'].map(t=>`<button aria-pressed="${type===t}" onclick="setGarment('${t}')">${t==='tee'?'T-shirt':'Hoodie'}</button>`).join('');$('preview').src=item.startsWith('water-')?waterImage(item,type):item+'-'+type+'.jpg';
 const proof=proofImage(item,type);

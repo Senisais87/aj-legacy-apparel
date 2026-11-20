@@ -206,7 +206,7 @@ const reviewFile = file => url('assets/art-review/'+file);
 const boardImage=id=>url('assets/merch-individual/'+id+'.webp');
 const revisedCards = {
  'approved-eclipse-memorial':'016-card.webp',
- 'selected-gym-07-quote-proof':'055-card.webp',
+ 'selected-gym-07-quote-proof':'055-card.webp?v=artwork-021-022-055',
  'selected-gym-board-discipline-builds-freedom':'070-card.webp'
 };
 const stripeColors={
@@ -357,7 +357,7 @@ if(window.AJStore){
   for(const [file,title] of selectedGymDesigns){
    const img='selected-'+file.split('.')[0];
    const quoteDesign=file.endsWith('.svg');
-   store.registerArtwork(img,quoteDesign?reviewFile('gym-07.webp'):url('assets/gym-selected/'+file));
+   store.registerArtwork(img,quoteDesign?reviewFile('gym-07.webp?v=artwork-021-022-055'):url('assets/gym-selected/'+file));
    store.lines.gym.push({
     img,title,kind:'shirt',flag:'none',concept:true,rawArt:quoteDesign,quoteDesign,
     verse:quoteDesign?'Do the things you don’t want to do to show your body that your mind is the boss.':'',
@@ -697,7 +697,7 @@ function loadPresentation(file,ready){
  document.head.append(script);
 }
 
-loadPresentation('assets/studio-merch.js?v=3',()=>{
+loadPresentation('assets/studio-merch.js?v=4',()=>{
  const studio=window.AJStudioMerch;
  document.dispatchEvent(new Event('aj-studio-merch-ready'));
  const store=window.AJStore;
