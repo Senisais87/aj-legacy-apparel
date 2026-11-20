@@ -6,14 +6,14 @@ const root=new URL('../',script.src);
 const cache=new Map();
 const colors={Black:'#17191d',Charcoal:'#363a41',Navy:'#152b49','Royal Blue':'#1769aa',White:'#eeeeee','Heather Gray':'#8b9096',Red:'#c8242b',Orange:'#f47721',Olive:'#596245',Blue:'#1769aa',Purple:'#8548a9',Gold:'#e3b126',Silver:'#a6a8ab',Green:'#527b48'};
 function load(url){url=new URL(url,root).href;if(!cache.has(url))cache.set(url,new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('Preview image could not load'));im.src=url}));return cache.get(url)}
-function artwork(im,box,lineColors=[],stripe){
+function artwork(im,box,lineColors=[],stripe,rawArt=false){
  const c=document.createElement('canvas');
  c.width=Math.max(1,Math.round(im.naturalWidth*box[2]));
  c.height=Math.max(1,Math.round(im.naturalHeight*box[3]));
  const x=c.getContext('2d',{willReadFrequently:true});
  x.drawImage(im,im.naturalWidth*box[0],im.naturalHeight*box[1],im.naturalWidth*box[2],im.naturalHeight*box[3],0,0,c.width,c.height);
  const p=x.getImageData(0,0,c.width,c.height),d=p.data;
- for(let i=0;i<d.length;i+=4){
+ for(let i=0;!rawArt&&i<d.length;i+=4){
   const hi=Math.max(d[i],d[i+1],d[i+2]),lo=Math.min(d[i],d[i+1],d[i+2]);
   const colorful=hi-lo>28&&hi>50;
   d[i+3]=Math.round(d[i+3]*(colorful?Math.min(1,(hi-30)/60):Math.max(0,Math.min(1,(hi-55)/55))));
@@ -50,7 +50,7 @@ window.AJModelPersonalizer={async artwork(source,box,lines,stripe){return artwor
 const [template,source,tankBack,logo]=await Promise.all([
  load(v.tank?'assets/mockups/individual/tank.webp':'assets/studio-garments.webp'),
  load(v.source),v.tank?load('assets/mockups/individual/tank-back.webp'):null,load('assets/logo.png')
-]);if(version!==sequence)return;canvas.width=1536;canvas.height=920;const ctx=canvas.getContext('2d');ctx.drawImage(v.tank?tankPhoto(template,v.color):photo(template,v.hoodie,false,v.color),0,0);ctx.drawImage(v.tank?tankPhoto(tankBack,v.color):photo(template,v.hoodie,true,v.color),768,0);delete canvas.dataset.previewError;const art=artwork(source,v.box||[.22,.36,.20,.36],v.lines,v.stripe);let cx=(back?1152:384),top=v.hoodie?235:185,w=235,h=v.hoodie?190:310;
+]);if(version!==sequence)return;canvas.width=1536;canvas.height=920;const ctx=canvas.getContext('2d');ctx.drawImage(v.tank?tankPhoto(template,v.color):photo(template,v.hoodie,false,v.color),0,0);ctx.drawImage(v.tank?tankPhoto(tankBack,v.color):photo(template,v.hoodie,true,v.color),768,0);delete canvas.dataset.previewError;const art=artwork(source,v.box||[.22,.36,.20,.36],v.lines,v.stripe,v.rawArt);let cx=(back?1152:384),top=v.hoodie?235:185,w=235,h=v.hoodie?190:310;
  if(/Chest/.test(placement)){cx=/Right/.test(placement)?330:438;top=v.hoodie?190:175;w=70;h=75;}else if(/Sleeve/.test(placement)){cx=/Right/.test(placement)?245:520;top=210;w=36;h=48;}else if(placement==='Upper Back'){top=v.hoodie?215:155;w=170;h=145;}else if(back){top=v.hoodie?225:160;w=235;h=335;}
  if(v.tank)top=Math.max(top,220);
  if(!back&&!/Chest|Sleeve/.test(placement)){top=v.hoodie?220:v.tank?220:170;h=Math.min(h,v.hoodie?190:310);}
@@ -61,3 +61,4 @@ const [template,source,tankBack,logo]=await Promise.all([
 
  ctx.fillStyle='#19191a';ctx.fillRect(0,768,1536,62);ctx.fillStyle='#f4f4f4';ctx.font='600 20px Arial';ctx.textAlign='center';ctx.fillText('FRONT',384,805);ctx.fillText('BACK',1152,805);window.AJPlacement.insideLabel(ctx,logo,0,830,1536,90);canvas.dataset.logoSide='Inside';canvas.dataset.brandPlacement=window.AJPlacement.brand.placement;canvas.dataset.badgePlacement='Wearer-left chest';canvas.dataset.previewEngine='live-garment-personalization';canvas.dataset.previewState=JSON.stringify(v);canvas.dataset.renderVersion=String(version);canvas.setAttribute('aria-label',(v.title||'AJ Legacy apparel')+' personalized front and back garment preview');canvas.dispatchEvent(new CustomEvent('previewrendered'));}catch(e){canvas.dataset.previewError=e.message;canvas.dispatchEvent(new CustomEvent('previewerror'));}}}}};
 })();
+

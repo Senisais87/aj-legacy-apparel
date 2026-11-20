@@ -18,6 +18,12 @@
   Cache-Control: no-cache
 /assets/merch-individual/*
   Cache-Control: no-cache
+/assets/art-review/*
+  Cache-Control: no-cache
+/assets/first-responders/individual/*
+  Cache-Control: no-cache
+/assets/gym-selected/gym-07-quote-proof.svg
+  Cache-Control: no-cache
 /assets/gym-board/aj-legacy-shaker.webp
   Cache-Control: no-cache
 /assets/graphics-preview.js

@@ -359,7 +359,7 @@ if(window.AJStore){
    const quoteDesign=file.endsWith('.svg');
    store.registerArtwork(img,quoteDesign?reviewFile('gym-07.webp'):url('assets/gym-selected/'+file));
    store.lines.gym.push({
-    img,title,kind:'shirt',flag:'none',concept:true,quoteDesign,
+    img,title,kind:'shirt',flag:'none',concept:true,rawArt:quoteDesign,quoteDesign,
     verse:quoteDesign?'Do the things you don’t want to do to show your body that your mind is the boss.':'',
     detail:quoteDesign?'Drew’s words on training and discipline.':'Selected Gym Attire artwork.',
    });
