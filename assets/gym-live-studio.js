@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const designs=[
-['gym-07','Mind Over Body — Andrew Faught','assets/gym-selected/gym-07-quote-proof.svg?v=artwork-021-022-055'],
+['gym-07','Mind Over Body — Andrew Faught','assets/gym-selected/gym-07-quote-proof.svg?v=55-eclipse-1'],
 ...Array.from({length:6},(_,i)=>['gym-'+String(i+1).padStart(2,'0'),['Sun Warrior','Eclipse Deadlift','Cane Corso — Bigger Than the Sun','Pit Bull — Built for Strength','Cane Corso — Discipline Builds Beasts','Pit Bull — Loyalty Builds Strength'][i],'assets/gym-selected/gym-'+String(i+1).padStart(2,'0')+'.jpg'])
 ];
 const base=new URL('../',document.currentScript.src);

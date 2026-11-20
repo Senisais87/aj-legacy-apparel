@@ -52,7 +52,7 @@
   "assets/merch-individual/selected-gym-04.webp": "assets-merch-individual-selected-gym-04.webp",
   "assets/merch-individual/selected-gym-05.webp": "assets-merch-individual-selected-gym-05.webp",
   "assets/merch-individual/selected-gym-06.webp": "assets-merch-individual-selected-gym-06.webp",
-  "assets/merch-individual/selected-gym-07-quote-proof.webp": "assets-merch-individual-selected-gym-07-quote-proof.webp?v=artwork-021-022-055",
+  "assets/merch-individual/selected-gym-07-quote-proof.webp": "assets-merch-individual-selected-gym-07-quote-proof.webp?v=55-eclipse-1",
   "assets/mockups/individual/shorts-aj.webp": "assets-mockups-individual-shorts-aj.webp",
   "assets/merch-individual/selected-gym-board-discipline-builds-freedom.webp": "assets-merch-individual-selected-gym-board-discipline-builds-freedom.webp",
   "assets/merch-individual/selected-gym-board-iron-sharpens-iron.webp": "assets-merch-individual-selected-gym-board-iron-sharpens-iron.webp",
