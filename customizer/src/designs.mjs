@@ -219,18 +219,6 @@ export const designs=[
       "Rank",
       "Unit"
     ]
-  },
-  {
-    "id": "approved-event-2027",
-    "name": "Legacy of Strength 2027",
-    "line": "Memorial",
-    "asset": "assets/events/legacy-strength-2027.png",
-    "referenceOnly": true,
-    "capabilities": [
-      "Name",
-      "Rank",
-      "Unit"
-    ]
   }
 ,
 {"id": "shirt2_0-law", "name": "Law Enforcement \u2014 Matthew 5:9", "line": "Service", "asset": "assets/matthew-law.svg", "referenceOnly": true, "capabilities": ["Name", "Rank", "Unit", "State", "Abbreviation", "ThinLine"]},
@@ -238,7 +226,7 @@ export const designs=[
 // Carry the exact catalog artwork into the placement studio in this browser tab.
 try {
  const handoff=JSON.parse(sessionStorage.getItem('aj-studio-design')||'null');
- if(handoff && typeof handoff.id==='string' && typeof handoff.asset==='string' &&
+ if(handoff && handoff.id!=='approved-event-2027' && typeof handoff.id==='string' && typeof handoff.asset==='string' &&
     (handoff.asset.startsWith('assets/') || handoff.asset.startsWith('data:image/')) &&
     !designs.some(d=>d.id===handoff.id)) designs.push(handoff);
 } catch (_) {}

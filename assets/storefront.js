@@ -551,7 +551,21 @@ if(window.AJStore){
     store.showPage('customize');
    }else{
     store.openItem(item,index);
-    if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
+    if(item.eventApproved){
+     const form=custom.querySelector('#custom-form');
+     const garment=form.querySelector('#garment-style');
+     garment.replaceChildren(new Option('T-shirt'));
+     garment.disabled=true;
+     const placement=form.querySelector('#design-side');
+     placement.value='Front';
+     placement.disabled=true;
+     placement.closest('label').hidden=true;
+     form.querySelector('.garment-choice .note')?.remove();
+     const note=form.querySelector('p.note');
+     if(note)note.textContent='This competition design is available as a T-shirt in black. Fit and size availability will be confirmed.';
+     document.getElementById('interactive-studio-link').hidden=true;
+     form.dispatchEvent(new Event('change',{bubbles:true}));
+    }else if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
      loadPresentation('assets/service-personalization.js?v=garment-standard-4',()=>{
       window.AJServicePersonalization.connectProduct(custom, actual, () => {
        const select = custom.querySelector('#design-variation');
