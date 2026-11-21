@@ -266,6 +266,20 @@ function boardControls(item,photo,form,thumbnail=false){
   label.append(personal);
   form.append(label);
  }
+ const defaultStyle=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
+ let garmentSelect;
+ if(upper&&!thumbnail){
+  const label=document.createElement('label');
+  label.textContent='Garment style';
+  garmentSelect=document.createElement('select');
+  garmentSelect.id='garment-style';
+  const styles=defaultStyle==='Half-zip'?[defaultStyle,...window.AJGarments.tops]:window.AJGarments.tops;
+  for(const style of styles)garmentSelect.add(new Option(style));
+  garmentSelect.value=defaultStyle;
+  garmentSelect.addEventListener('change',draw);
+  label.append(garmentSelect);
+  form.prepend(label);
+ }
  const source=new Image();
  const upperEngine=upper?window.AJGraphicsPreview.create(canvas,draw):null;
  const logoOnly=/^(shield-hoodie|doc-shield-hoodie|memorial-shield-hoodie|gym-chest-logo-tee|memorial-chest-logo-tee)$/.test(id);
@@ -287,9 +301,10 @@ function boardControls(item,photo,form,thumbnail=false){
   ctx.drawImage(source,0,0);
   if(stripe&&select&&select.value.toLowerCase()!==stripe[0])window.AJPreviewStripes.paint(ctx,stripe,[stripeColors[select.value]]);
   if(upper){
-   const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
+   const style=garmentSelect?.value||defaultStyle;
    const drawn=upperEngine.draw({style,source:art,original:art,compose:true,logoOnly,side:boardBack.has(id)?'Back':'Front',originalSide:'Front',rawArt:Boolean(revised),artKey:item.img,stripe:select?.value,mainBox:crops[id]||[.27,.17,.46,.4]});
    if(!drawn)return;
+   canvas.setAttribute('aria-label',item.title+' · '+style+' — live preview');
    if(thumbnail){
     photo.src=canvas.toDataURL();
     photo.dataset.currentPlacement='true';
@@ -508,12 +523,11 @@ if(window.AJStore){
      }
      if(/tee|hoodie|quarter-zip|flag-top/i.test(item.title)){
       loadPresentation('assets/service-personalization.js?v=garment-standard-4',()=>{
-       const style=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
        window.AJServicePersonalization.mount(form,{
         department:['law','doc','gym'].includes(actual),
         badge:['law','doc'].includes(actual),
         eow:()=>window.AJServicePersonalization.allowsEow(actual, boardId),
-        style:()=>style, stripePalette:stripeColors,
+        style:()=>form.querySelector('#garment-style').value, stripePalette:stripeColors,
         defaultSleeveColor:boardId==='trt-tee'||boardId==='orange-line-flag-top'?stripeColors.Orange:actual==='law'?stripeColors.Blue:actual==='doc'?stripeColors['Silver / gray']:undefined,
         preview:live||photo, side:()=>boardBack.has(boardId)?'Back':'Front'
        });

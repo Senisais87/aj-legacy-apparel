@@ -168,6 +168,7 @@
       const short=v.style==='Shorts';
       context.fillText(v.text,size*(profile.lower?(short?.32:.40):.38),size*(profile.lower?(short?.45:.30):.28),size*(profile.lower?.105:.17));
      }
+     if(profile.fullZip)window.AJPlacement.drawZipper(context,size,.30,.87);
      if(back){
       context.fillStyle='#f2f3f5';
       context.font='600 14px system-ui';

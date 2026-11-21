@@ -16,6 +16,7 @@
   Hoodie: [.23,.435,.085],
  };
  function sleevePosition(style, wearerSide, back=false, photographed=false) {
+  if(style==='Full-zip hoodie')style='Hoodie';
   const [offset, height, width] = (photographed && photographedSleeves[style]) ||
    garmentSleeves[style] || garmentSleeves['T-shirt'];
   return [(wearerSide === 'right') !== back ? offset : 1 - offset, height, width];
@@ -58,6 +59,16 @@
   });
   context.restore();
  }
+ function drawZipper(ctx,size,top,bottom){
+  const center=size*.5;
+  ctx.save();
+  ctx.fillStyle='#1b1c1e';
+  ctx.fillRect(center-size*.005,size*top,size*.01,size*(bottom-top));
+  ctx.fillStyle='#9da0a4';
+  ctx.fillRect(center-size*.001,size*top,size*.002,size*(bottom-top));
+  ctx.fillRect(center-size*.004,size*(top+.008),size*.008,size*.019);
+  ctx.restore();
+ }
  function insideLabel(ctx,logo,x,y,width,height){
   ctx.save();ctx.fillStyle='#222830';ctx.fillRect(x,y,width,height);
   const sx=x+12,sy=y+10,w=Math.min(82,width*.26),h=height-20;
@@ -69,5 +80,5 @@
   ctx.fillText('INSIDE BACK COLLAR',sx+w+12,sy+24,width-w-36);
   ctx.fillStyle='#c1c7cf';ctx.font='11px system-ui';ctx.fillText('Fixed AJ label · no exterior chest logo',sx+w+12,sy+45,width-w-36);ctx.restore();
  }
- window.AJPlacement=Object.freeze({brand:Object.freeze(brand),badge:Object.freeze(badge),flag:Object.freeze(flag),state:Object.freeze(state),sleevePosition,hasSleeves,drawFlag,insideLabel});
+ window.AJPlacement=Object.freeze({brand:Object.freeze(brand),badge:Object.freeze(badge),flag:Object.freeze(flag),state:Object.freeze(state),sleevePosition,hasSleeves,drawFlag,drawZipper,insideLabel});
 })();

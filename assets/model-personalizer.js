@@ -59,6 +59,7 @@ const [template,source,tankBack,logo]=await Promise.all([
  text(ctx,v.name,opposite,v.hoodie?185:172,100,ink);text(ctx,v.department,opposite,v.hoodie?205:192,100,ink);text(ctx,v.front,384,v.hoodie?455:535,210,ink);text(ctx,v.back,1152,v.hoodie?590:535,210,ink);
 
 
+ if(v.fullZip)window.AJPlacement.drawZipper(ctx,768,.22,.89);
  ctx.fillStyle='#19191a';ctx.fillRect(0,768,1536,62);ctx.fillStyle='#f4f4f4';ctx.font='600 20px Arial';ctx.textAlign='center';ctx.fillText('FRONT',384,805);ctx.fillText('BACK',1152,805);window.AJPlacement.insideLabel(ctx,logo,0,830,1536,90);canvas.dataset.logoSide='Inside';canvas.dataset.brandPlacement=window.AJPlacement.brand.placement;canvas.dataset.badgePlacement='Wearer-left chest';canvas.dataset.previewEngine='live-garment-personalization';canvas.dataset.previewState=JSON.stringify(v);canvas.dataset.renderVersion=String(version);canvas.setAttribute('aria-label',(v.title||'AJ Legacy apparel')+' personalized front and back garment preview');canvas.dispatchEvent(new CustomEvent('previewrendered'));}catch(e){canvas.dataset.previewError=e.message;canvas.dispatchEvent(new CustomEvent('previewerror'));}}}}};
 })();
 
