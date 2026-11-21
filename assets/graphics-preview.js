@@ -146,7 +146,12 @@
        artKey = key;
       }
       const [x,y,w,h]=profile.print;
-      fit(context,cut,((back&&v.side==='Back'?1:0)+x)*size,y*size,w*size,h*size);
+      const backPrint=back&&v.side==='Back';
+      if(profile.fullZip&&!backPrint){
+       window.AJPlacement.drawSplitFront(context,cut,size,y*size,w*size,h*size,true);
+      }else{
+       fit(context,cut,((backPrint?1:0)+x)*size,y*size,w*size,h*size);
+      }
      }
      if(profile.lower){
       const [x,y,w]=profile.logo;

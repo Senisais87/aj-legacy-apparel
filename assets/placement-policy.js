@@ -59,6 +59,20 @@
   });
   context.restore();
  }
+ function drawSplitFront(ctx,art,size,top,maxWidth,maxHeight,centerVertically=false){
+  const width=art.naturalWidth||art.width;
+  const height=art.naturalHeight||art.height;
+  const gap=size*.025;
+  const scale=Math.min((maxWidth-gap)/width,maxHeight/height);
+  const halfWidth=width/2;
+  const panelWidth=halfWidth*scale;
+  const panelHeight=height*scale;
+  const y=centerVertically?top-panelHeight/2:top;
+  const leftEdge=(size-gap)/2;
+  const rightEdge=(size+gap)/2;
+  ctx.drawImage(art,0,0,halfWidth,height,leftEdge-panelWidth,y,panelWidth,panelHeight);
+  ctx.drawImage(art,halfWidth,0,halfWidth,height,rightEdge,y,panelWidth,panelHeight);
+ }
  function drawZipper(ctx,size,top,bottom){
   const center=size*.5;
   ctx.save();
@@ -80,5 +94,5 @@
   ctx.fillText('INSIDE BACK COLLAR',sx+w+12,sy+24,width-w-36);
   ctx.fillStyle='#c1c7cf';ctx.font='11px system-ui';ctx.fillText('Fixed AJ label · no exterior chest logo',sx+w+12,sy+45,width-w-36);ctx.restore();
  }
- window.AJPlacement=Object.freeze({brand:Object.freeze(brand),badge:Object.freeze(badge),flag:Object.freeze(flag),state:Object.freeze(state),sleevePosition,hasSleeves,drawFlag,drawZipper,insideLabel});
+ window.AJPlacement=Object.freeze({brand:Object.freeze(brand),badge:Object.freeze(badge),flag:Object.freeze(flag),state:Object.freeze(state),sleevePosition,hasSleeves,drawFlag,drawSplitFront,drawZipper,insideLabel});
 })();

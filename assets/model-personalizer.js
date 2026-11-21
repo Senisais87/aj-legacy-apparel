@@ -55,7 +55,13 @@ const [template,source,tankBack,logo]=await Promise.all([
  if(v.tank)top=Math.max(top,220);
  if(!back&&!/Chest|Sleeve/.test(placement)){top=v.hoodie?220:v.tank?220:170;h=Math.min(h,v.hoodie?190:310);}
 
- const scale=Math.min(w/art.width,h/art.height);ctx.drawImage(art,cx-art.width*scale/2,top,art.width*scale,art.height*scale);const ink=['White','Heather Gray'].includes(v.color)?'#101820':'#ffffff';const opposite=330;
+ if(v.fullZip&&placement==='Full Front'){
+  window.AJPlacement.drawSplitFront(ctx,art,768,top,w,h);
+ }else{
+  const scale=Math.min(w/art.width,h/art.height);
+  ctx.drawImage(art,cx-art.width*scale/2,top,art.width*scale,art.height*scale);
+ }
+ const ink=['White','Heather Gray'].includes(v.color)?'#101820':'#ffffff';const opposite=330;
  text(ctx,v.name,opposite,v.hoodie?185:172,100,ink);text(ctx,v.department,opposite,v.hoodie?205:192,100,ink);text(ctx,v.front,384,v.hoodie?455:535,210,ink);text(ctx,v.back,1152,v.hoodie?590:535,210,ink);
 
 
