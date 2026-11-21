@@ -145,8 +145,8 @@
        cut = artwork(printAsset ? {...v, original: printAsset, rawArt: true, printAsset, stripeInk} : v);
        artKey = key;
       }
-      const [x,y,w,h]=profile.print;
       const backPrint=back&&v.side==='Back';
+      const [x,y,w,h]=(backPrint&&profile.backPrint)||profile.print;
       if(profile.fullZip&&!backPrint){
        window.AJPlacement.drawSplitFront(context,cut,size,y*size,w*size,h*size,true);
       }else{

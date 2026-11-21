@@ -1,10 +1,15 @@
 /* Garment names and placement coordinates shared by the product grid and preview. */
 (() => {
  const root = new URL('mockups/individual/', document.currentScript.src);
- const hoodie = {file:'hoodie', print:[.50,.43,.34,.32], logo:[.60,.33,.10]};
+ const hoodie = {
+  file:'hoodie',
+  print:[.50,.49,.34,.25],
+  backPrint:[.50,.57,.34,.34],
+  logo:[.60,.33,.10]
+ };
  const styles = {
-  'T-shirt': {file:'tee', print:[.50,.40,.35,.44], logo:[.61,.31,.115]},
-  'Tank Top': {file:'tank', print:[.50,.43,.36,.42], logo:[.62,.35,.10]},
+  'T-shirt': {file:'tee', print:[.50,.48,.35,.38], logo:[.61,.31,.115]},
+  'Tank Top': {file:'tank', print:[.50,.50,.36,.36], logo:[.62,.35,.10]},
   Hoodie: hoodie,
   'Full-zip hoodie': {...hoodie, fullZip:true},
   Shorts: {file:'shorts', print:[.70,.61,.23,.26], logo:[.68,.43,.095], lower:true},

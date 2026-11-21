@@ -50,16 +50,29 @@ window.AJModelPersonalizer={async artwork(source,box,lines,stripe){return artwor
 const [template,source,tankBack,logo]=await Promise.all([
  load(v.tank?'assets/mockups/individual/tank.webp':'assets/studio-garments.webp'),
  load(v.source),v.tank?load('assets/mockups/individual/tank-back.webp'):null,load('assets/logo.png')
-]);if(version!==sequence)return;canvas.width=1536;canvas.height=920;const ctx=canvas.getContext('2d');ctx.drawImage(v.tank?tankPhoto(template,v.color):photo(template,v.hoodie,false,v.color),0,0);ctx.drawImage(v.tank?tankPhoto(tankBack,v.color):photo(template,v.hoodie,true,v.color),768,0);delete canvas.dataset.previewError;const art=artwork(source,v.box||[.22,.36,.20,.36],v.lines,v.stripe,v.rawArt);let cx=(back?1152:384),top=v.hoodie?235:185,w=235,h=v.hoodie?190:310;
- if(/Chest/.test(placement)){cx=/Right/.test(placement)?330:438;top=v.hoodie?190:175;w=70;h=75;}else if(/Sleeve/.test(placement)){cx=/Right/.test(placement)?245:520;top=210;w=36;h=48;}else if(placement==='Upper Back'){top=v.hoodie?215:155;w=170;h=145;}else if(back){top=v.hoodie?225:160;w=235;h=335;}
- if(v.tank)top=Math.max(top,220);
- if(!back&&!/Chest|Sleeve/.test(placement)){top=v.hoodie?220:v.tank?220:170;h=Math.min(h,v.hoodie?190:310);}
+]);if(version!==sequence)return;canvas.width=1536;canvas.height=920;const ctx=canvas.getContext('2d');ctx.drawImage(v.tank?tankPhoto(template,v.color):photo(template,v.hoodie,false,v.color),0,0);ctx.drawImage(v.tank?tankPhoto(tankBack,v.color):photo(template,v.hoodie,true,v.color),768,0);delete canvas.dataset.previewError;const art=artwork(source,v.box||[.22,.36,.20,.36],v.lines,v.stripe,v.rawArt);let cx=back?1152:384;
+ let centerY=768*(v.hoodie?(back?.57:.48):v.tank?.50:.48),w=235,h=v.hoodie?(back?260:182):285;
+ if(/Chest/.test(placement)){
+  cx=/Right/.test(placement)?330:438;
+  centerY=(v.hoodie?190:175)+37.5;
+  w=70;
+  h=75;
+ }else if(/Sleeve/.test(placement)){
+  cx=/Right/.test(placement)?245:520;
+  centerY=234;
+  w=36;
+  h=48;
+ }else if(placement==='Upper Back'){
+  centerY=v.hoodie?330:228;
+  w=170;
+  h=145;
+ }
 
  if(v.fullZip&&placement==='Full Front'){
-  window.AJPlacement.drawSplitFront(ctx,art,768,top,w,h);
+  window.AJPlacement.drawSplitFront(ctx,art,768,centerY,w,h,true);
  }else{
   const scale=Math.min(w/art.width,h/art.height);
-  ctx.drawImage(art,cx-art.width*scale/2,top,art.width*scale,art.height*scale);
+  ctx.drawImage(art,cx-art.width*scale/2,centerY-art.height*scale/2,art.width*scale,art.height*scale);
  }
  const ink=['White','Heather Gray'].includes(v.color)?'#101820':'#ffffff';const opposite=330;
  text(ctx,v.name,opposite,v.hoodie?185:172,100,ink);text(ctx,v.department,opposite,v.hoodie?205:192,100,ink);text(ctx,v.front,384,v.hoodie?455:535,210,ink);text(ctx,v.back,1152,v.hoodie?590:535,210,ink);
