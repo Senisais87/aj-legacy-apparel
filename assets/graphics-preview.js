@@ -159,11 +159,12 @@
      }
      if(shoulderBrand){
       fit(context,logo,size*.76,size*.34,size*.095,size*.095);
-      if(v.artKey==='approved-eclipse-memorial'){
+      if(v.artKey==='approved-eclipse-memorial'&&!canvas.dataset.managedPersonalization){
        context.fillStyle='#fff';
        context.font='bold '+Math.round(size*.026)+'px system-ui';
        context.textAlign='center';
-       context.fillText('SGT. FAUGHT',size*.36,size*.30,size*.17);
+       context.fillText('SGT.',size*.36,size*.30,size*.13);
+       context.fillText('FAUGHT',size*.36,size*.327,size*.13);
       }
      }else if(!profile.lower)window.AJPlacement.insideLabel(context,logo,0,size+28,canvas.width,90);
      if(v.text&&!profile.logoOnly){

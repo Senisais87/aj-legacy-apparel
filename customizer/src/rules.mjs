@@ -24,3 +24,10 @@ export function zones(type){
 }
 export function logo(type){return type==='Upper'?{id:'brand',side:'Inside',x:228,y:112,w:44,h:36,kind:'Brand Logo',placement:'Centered inside below back collar',locked:true,asset:'assets/logo.png'}:type==='Lower'?{id:'brand',side:'Front',x:190,y:120,w:40,h:40,kind:'Brand Logo',locked:true,asset:'assets/logo.png'}:null}
 export function validate(e,type,line,design){const all=[...e,...(logo(type)?[logo(type)]:[])];return e.every(a=>{const zone=zones(type).find(z=>z.id===a.zone);return zone&&allowed(type,line,zone,design).includes(a.kind)&&(!(a.kind==='Graphic'&&a.graphic==='Flag')||supports(design,'ThinLine',type,line))&&(!(a.kind==='Graphic'&&a.graphic==='Selected')||a.designId===design?.id)&&a.x>=zone.x&&a.y>=zone.y&&a.x+a.w<=zone.x+zone.w&&a.y+a.h<=zone.y+zone.h&&canPlace(a,all,a.id)})}
+
+export function placementBox(zone, kind) {
+ const box = {x: zone.x + 2, y: zone.y + 2, w: zone.w - 4, h: zone.h - 4};
+ if (kind !== 'Rank' && kind !== 'Name') return box;
+ const rowHeight = (box.h - GAP - 1) / 2;
+ return {...box, y: kind === 'Rank' ? box.y : box.y + box.h - rowHeight, h: rowHeight};
+}

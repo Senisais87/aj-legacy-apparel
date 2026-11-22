@@ -52,17 +52,21 @@
  }
  function paint(context, marks, surfaces, zones) {
   const count = {}, previousY = {};
+  const spinePair = ['Rank', 'Name'].every(kind =>
+   marks.some(mark => mark.label === kind && mark.placement === spine));
   for (const {label, value, placement} of marks) {
    const [side, x, y, width] = boxes[placement];
    const surface = surfaces[side];
    if (!surface) continue;
    const [left, top, widthPx, height] = surface;
-   const row = count[placement] || 0;
-   count[placement] = row + 1;
    const vertical = placement === spine;
+   const pairedLine = vertical && spinePair && (label === 'Rank' || label === 'Name');
+   const row = count[placement] || 0;
+   if (!pairedLine || label === 'Name') count[placement] = row + 1;
+   const span = pairedLine ? width / 2 - .015 : width;
    const center = x + (vertical ? row * .025 : 0);
-   const start = vertical ? y : Math.max(y, (previousY[placement] ?? 0) + .027);
-   const centerY = logoSafeY(center, start, vertical ? .026 : width, vertical ? width : .026, zones[side]);
+   const start = vertical ? y + (pairedLine ? (label === 'Rank' ? -1 : 1) * width / 4 : 0) : Math.max(y, (previousY[placement] ?? 0) + .027);
+   const centerY = logoSafeY(center, start, vertical ? .026 : width, vertical ? span : .026, zones[side]);
    if (centerY === null) continue;
    previousY[placement] = centerY;
    context.save();
@@ -75,8 +79,8 @@
    context.fillStyle = '#fff';
    context.lineWidth = 2;
    const text = label === 'EOW date' ? 'EOW ' + value : value;
-   context.strokeText(text, 0, 0, width * (vertical ? height : widthPx));
-   context.fillText(text, 0, 0, width * (vertical ? height : widthPx));
+   context.strokeText(text, 0, 0, span * (vertical ? height : widthPx));
+   context.fillText(text, 0, 0, span * (vertical ? height : widthPx));
    context.restore();
   }
  }
@@ -93,26 +97,27 @@
   return names.map(name => palette[name]).filter(Boolean);
  }
  function mount(form, {department, eow = () => false, style, preview, side = () => 'Front',
-   paired = () => false, badge, itemOnly = false, shoulderBrand = false, sleeveFlag = true, update, onProof, stripePalette = sleeveStripeColors, defaultSleeveColor}) {
+   paired = () => false, badge, itemOnly = false, shoulderBrand = false, sleeveFlag = true, update, onProof, stripePalette = sleeveStripeColors, defaultSleeveColor, initialText = {}}) {
   const group = document.createElement('fieldset');
   group.className = 'aj-personalization-fields';
   const legend = document.createElement('legend');
   legend.textContent = 'Garment personalization';
   const logoNote = document.createElement('p');
   logoNote.className = 'note';
-  logoNote.textContent = 'AJ logo: inside, directly below the back collar. Agency badges: wearer’s left chest (viewer’s right). Names and rank stay clear of the badge.';
+  logoNote.textContent = 'AJ logo: inside, directly below the back collar. Agency badges: wearer’s left chest (viewer’s right). Rank appears above the name when they share a placement.';
   group.append(legend);
   if (!itemOnly) {
    if (shoulderBrand) logoNote.textContent = 'AJ logo: wearer’s left shoulder. Agency badges: Coming Soon.';
    group.append(logoNote);
   }
-  const fields = (itemOnly ? ['EOW date'] : ['Name', 'Rank', ...(department ? ['Facility / Department'] : []), ...(badge ? ['Unit'] : []), 'EOW date']).map(label => {
+  const fields = (itemOnly ? ['EOW date'] : ['Rank', 'Name', ...(department ? ['Facility / Department'] : []), ...(badge ? ['Unit'] : []), 'EOW date']).map(label => {
    const row = document.createElement('div');
    const caption = document.createElement('label');
    caption.textContent = label;
    const input = document.createElement('input');
    input.type = label === 'EOW date' ? 'date' : 'text';
    input.maxLength = 48;
+   input.value = initialText[label] || '';
    if (input.type === 'text') input.placeholder = label === 'Facility / Department' && badge ?
     'Full department name or abbreviation' : 'Optional';
    caption.append(input);
@@ -294,7 +299,8 @@
     form.dispatchEvent(new Event('change', {bubbles:true}));
    }
    const note = [...form.querySelectorAll('.note')].find(node => node.textContent.startsWith('Only Name and Unit'));
-   if (note) note.textContent = 'Use Garment personalization for independent name and rank placement.';
+   if (note) note.textContent = 'Use Garment personalization to preview rank and name on separate lines.';
+   preview.dataset.managedPersonalization = 'true';
    const personalization = mount(form, {
     department: ['law', 'doc', 'gym'].includes(collection),
     badge: ['law', 'doc'].includes(collection),
@@ -304,6 +310,7 @@
     style: () => style.value,
     stripePalette: window.AJStore.flagColors,
     defaultSleeveColor: resolveItem().img === 'approved-eclipse-memorial' || resolveItem().flag === 'orange' ? sleeveStripeColors.Orange : collection === 'law' ? sleeveStripeColors.Blue : collection === 'doc' ? sleeveStripeColors.Silver : undefined,
+    initialText: resolveItem().img === 'approved-eclipse-memorial' ? {Rank: 'SGT.', Name: 'FAUGHT'} : {},
     preview,
     side: () => window.AJGarments.styles[style.value]?.logoOnly ? 'Front' : preview.dataset.placement || 'Front',
     paired: () => preview.dataset.previewEngine === 'live-product-artwork' && preview.width > preview.height * 1.5,
@@ -313,6 +320,7 @@
      if (image) image.src = canvas.toDataURL('image/png');
     },
    });
+   form.dispatchEvent(new Event('change', {bubbles: true}));
    form.addEventListener('click', event => {
     if (!event.target.closest('.continue-customize')) return;
     const review = screen.querySelector('#finished-design');

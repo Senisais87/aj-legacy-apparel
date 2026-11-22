@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {allowed,zones,logo,collides,canPlace,validate,supports} from './rules.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import {allowed,zones,logo,collides,canPlace,validate,supports,placementBox} from './rules.mjs';
 import {designById} from './designs.mjs';
 const basic=designById('blank');
 test('Touch, overlap and clearance are blocked on the same surface',()=>{const a={side:'Front',x:10,y:10,w:10,h:10};assert(collides(a,{...a,x:20}));assert(collides(a,{...a,x:23}));assert(!collides(a,{...a,x:23.001}));assert(!collides(a,{...a,side:'Back'}));assert(!canPlace(a,[{...a,id:'other'}]));});
@@ -23,4 +23,18 @@ test('The upper state emblem uses the wearer-left shoulder and wearer-left chest
  assert(!validate([{...right,id:'name',zone:'chest-left',kind:'Name'}],'Upper','K9',design));
  assert(validate([{...left,id:'state',zone:left.id,kind:'State'}],'Upper','K9',design));
  assert(left.x>325,'wearer-left sleeve must be viewer-right');
+});
+
+test('Rank and name fit as separate rows in every shared placement zone', () => {
+ for (const type of ['Upper', 'Lower', 'Headwear']) {
+  for (const zone of zones(type).filter(zone => zone.accepts.includes('Rank') && zone.accepts.includes('Name'))) {
+   const marks = ['Rank', 'Name'].map(kind => ({
+    ...placementBox(zone, kind), id: kind, zone: zone.id, side: zone.side, kind, value: kind
+   }));
+   const [rank, name] = marks;
+   assert.equal(rank.x + rank.w / 2, name.x + name.w / 2, zone.id);
+   assert(rank.y + rank.h < name.y, zone.id);
+   assert(validate(marks, type, 'Service', basic), zone.id);
+  }
+ }
 });

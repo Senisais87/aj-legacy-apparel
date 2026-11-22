@@ -522,7 +522,7 @@ if(window.AJStore){
       (live||photo).after(front);
      }
      if(/tee|hoodie|quarter-zip|flag-top/i.test(item.title)){
-      loadPresentation('assets/service-personalization.js?v=garment-standard-4',()=>{
+      loadPresentation('assets/service-personalization.js?v=rank-above-name-1',()=>{
        window.AJServicePersonalization.mount(form,{
         department:['law','doc','gym'].includes(actual),
         badge:['law','doc'].includes(actual),
@@ -566,7 +566,7 @@ if(window.AJStore){
      document.getElementById('interactive-studio-link').hidden=true;
      form.dispatchEvent(new Event('change',{bubbles:true}));
     }else if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
-     loadPresentation('assets/service-personalization.js?v=garment-standard-4',()=>{
+     loadPresentation('assets/service-personalization.js?v=rank-above-name-1',()=>{
       window.AJServicePersonalization.connectProduct(custom, actual, () => {
        const select = custom.querySelector('#design-variation');
        return select ? item.variations[Number(select.value)] : item;
@@ -710,7 +710,7 @@ if(window.AJStore){
  const form=document.querySelector('.form')||document.querySelector('.customizer');if(form&&!document.querySelector('.aj-checkout'))disabledCheckout(form);
 }
 function mountItemEow(form, preview, collection, key){
- loadPresentation('assets/service-personalization.js?v=garment-standard-4',()=>{
+ loadPresentation('assets/service-personalization.js?v=rank-above-name-1',()=>{
   const service = window.AJServicePersonalization;
   if(service.allowsEow(collection,key)) service.mount(form,{itemOnly:true,eow:()=>true,style:()=> 'Item',preview});
  });
