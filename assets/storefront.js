@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 /* Refresh shared header stylesheet when a new storefront build is published. */
-const cssVersion='military-collection-teaser';
+const cssVersion='worn-models-1';
 for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
  try{const u=new URL(link.href,document.baseURI);if(u.pathname.endsWith('/assets/storefront.css')){u.searchParams.set('v',cssVersion);if(link.href!==u.href)link.href=u.href;}}catch(_e){}
 }
@@ -204,11 +204,6 @@ const reviewArt = {
 };
 const reviewFile = file => url('assets/art-review/'+file);
 const boardImage=id=>url('assets/merch-individual/'+id+'.webp');
-const revisedCards = {
- 'approved-eclipse-memorial':'016-card.webp',
- 'selected-gym-07-quote-proof':'055-back-card.webp',
- 'selected-gym-board-discipline-builds-freedom':'070-card.webp'
-};
 const stripeColors={
  'Blue':'#1769aa','Silver / gray':'#a6a8ab','Orange':'#f47721','Red':'#c8242b',
  'Green':'#39844c','Purple':'#8548a9','White':'#f4f4f4','Gold':'#e3b126','Monochrome':'#737373'
@@ -238,8 +233,9 @@ function boardControls(item,photo,form,thumbnail=false){
  };
  const stripe=revised ? recipes[id] : boardStripes[id];
  const trt=id==='trt-tee'||id==='orange-line-flag-top';
+ const lower=/joggers|shorts/i.test(id);
  const upper=/tee|hoodie|quarter-zip|flag-top/i.test(item.title+' '+id);
- if(thumbnail&&!upper||!stripe&&!trt&&!upper)return;
+ if(!upper&&!lower&&(thumbnail||!stripe&&!trt))return;
  const canvas=document.createElement('canvas');
  canvas.id='livePreview';
  canvas.setAttribute('aria-label',item.title+' — live preview');
@@ -266,7 +262,7 @@ function boardControls(item,photo,form,thumbnail=false){
   label.append(personal);
   form.append(label);
  }
- const defaultStyle=/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
+ const defaultStyle=lower?(id.endsWith('shorts')?'Shorts':'Joggers'):/hoodie/i.test(item.title)?'Hoodie':/quarter-zip/i.test(item.title)?'Half-zip':'T-shirt';
  let garmentSelect;
  if(upper&&!thumbnail){
   const label=document.createElement('label');
@@ -280,8 +276,9 @@ function boardControls(item,photo,form,thumbnail=false){
   label.append(garmentSelect);
   form.prepend(label);
  }
+ if(lower&&form)form.addEventListener('change',draw);
  const source=new Image();
- const upperEngine=upper?window.AJGraphicsPreview.create(canvas,draw):null;
+ const engine=upper||lower?window.AJGraphicsPreview.create(canvas,draw):null;
  const logoOnly=/^(shield-hoodie|doc-shield-hoodie|memorial-shield-hoodie|gym-chest-logo-tee|memorial-chest-logo-tee)$/.test(id);
  const crops={
   'badge-story':[.28,.18,.44,.32], 'trt-tee':[.27,.17,.46,.26],
@@ -294,15 +291,15 @@ function boardControls(item,photo,form,thumbnail=false){
  };
  function draw(){
   if(!source.naturalWidth)return;
-  const art=upper?document.createElement('canvas'):canvas;
+  const art=engine?document.createElement('canvas'):canvas;
   art.width=source.naturalWidth;
   art.height=source.naturalHeight;
   const ctx=art.getContext('2d',{willReadFrequently:true});
   ctx.drawImage(source,0,0);
   if(stripe&&select&&select.value.toLowerCase()!==stripe[0])window.AJPreviewStripes.paint(ctx,stripe,[stripeColors[select.value]]);
-  if(upper){
-   const style=garmentSelect?.value||defaultStyle;
-   const drawn=upperEngine.draw({style,source:art,original:art,compose:true,logoOnly,side:boardBack.has(id)?'Back':'Front',originalSide:'Front',rawArt:Boolean(revised),artKey:item.img,stripe:select?.value,mainBox:crops[id]||[.27,.17,.46,.4]});
+  if(engine){
+   const style=lower&&form?.querySelector('.aj-board-variant')?.value.endsWith('shorts')?'Shorts':garmentSelect?.value||defaultStyle;
+   const drawn=engine.draw({style,source:art,original:art,compose:true,logoOnly:logoOnly||lower,side:boardBack.has(id)?'Back':'Front',originalSide:'Front',rawArt:Boolean(revised),artKey:item.img,stripe:select?.value,mainBox:crops[id]||[.27,.17,.46,.4]});
    if(!drawn)return;
    canvas.setAttribute('aria-label',item.title+' · '+style+' — live preview');
    if(thumbnail){
@@ -313,7 +310,7 @@ function boardControls(item,photo,form,thumbnail=false){
     canvas.dispatchEvent(new Event('previewrendered'));
    }
   }else canvas.dataset.personalizationSource='garment';
-  if(personal?.value.trim()&&!upper){
+  if(personal?.value.trim()&&!engine){
    ctx.font='700 '+Math.round(canvas.width*.019)+'px system-ui';
    ctx.fillStyle='#fff';
    ctx.textAlign='center';
@@ -325,7 +322,7 @@ function boardControls(item,photo,form,thumbnail=false){
  select?.addEventListener('change',draw);
  personal?.addEventListener('input',draw);
  document.addEventListener('aj-studio-merch-ready',()=>{
-  if(upper)return;
+  if(engine)return;
   const cutout=window.AJStudioMerch.source(source.src);
   if(cutout)source.src=cutout;
  },{once:true});
@@ -455,7 +452,7 @@ if(window.AJStore){
    tile.dataset.productIndex=index;
    const boardId=item.boardMerch?item.img.slice('board-merch-'.length):null;
    const family=boardFamilies[boardId];
-   if(boardId&&/tee|hoodie|quarter-zip|flag-top/i.test(item.title+' '+boardId)){
+   if(boardId&&/tee|hoodie|quarter-zip|flag-top|joggers|shorts/i.test(item.title+' '+boardId)){
     // Use the same collar-only garment composition as the live product proof.
     // Replace the original image node so its pending legacy preview cannot overwrite it.
     const thumbnail=image.cloneNode(false);
@@ -463,21 +460,9 @@ if(window.AJStore){
     image.replaceWith(thumbnail);
     boardControls(item,thumbnail,null,true);
    }
-   if(revisedCards[item.img]){
-    const revisedImage=image.cloneNode(false);
-    revisedImage.src=reviewFile(revisedCards[item.img]);
-    image.replaceWith(revisedImage);
-   }
-   else if(item.img.startsWith('selected-gym-')&&!item.accessory)image.src=boardImage(item.img);
    if(family)tile.querySelector('strong').textContent=family.title;
    if(item.garmentGroup==='logo'&&item.style==='Crewneck')tile.querySelector('strong').textContent='AJ Legacy Shield Tops';
    if(item.garmentGroup==='lower'&&item.style==='Shorts')tile.querySelector('strong').textContent='AJ Legacy Shield Bottoms';
-   if(item.flag==='orange'&&actual==='doc'&&!item.boardMerch){
-    // The main DOC thumbnail renderer defaults to silver. The source proof carries the TRT orange stripe.
-    const unitImage=image.cloneNode(false);
-    unitImage.src=assets[item.img];
-    image.replaceWith(unitImage);
-   }
    if(boardId==='trt-cap'||variantIds.has(boardId)||item.garmentGroup==='logo'&&item.style!=='Crewneck'||item.garmentGroup==='lower'&&item.style!=='Shorts')tile.remove();
   }
   if(actual==='limited'&&!params.has('product')){
@@ -522,7 +507,7 @@ if(window.AJStore){
       (live||photo).after(front);
      }
      if(/tee|hoodie|quarter-zip|flag-top/i.test(item.title)){
-      loadPresentation('assets/service-personalization.js?v=rank-above-name-1',()=>{
+      loadPresentation('assets/service-personalization.js?v=worn-models-1',()=>{
        window.AJServicePersonalization.mount(form,{
         department:['law','doc','gym'].includes(actual),
         badge:['law','doc'].includes(actual),
@@ -541,6 +526,7 @@ if(window.AJStore){
      const select=document.createElement('select');
      for(const [id,name] of family.options)select.add(new Option(name,id));
      select.value=boardId;
+     select.className='aj-board-variant';
      select.addEventListener('change',()=>{
       photo.src=boardImage(select.value);
       photo.alt=family.title+' — '+select.selectedOptions[0].text;
@@ -566,7 +552,7 @@ if(window.AJStore){
      document.getElementById('interactive-studio-link').hidden=true;
      form.dispatchEvent(new Event('change',{bubbles:true}));
     }else if(item.kind!=='hat'&&item.garmentGroup!=='lower'&&item.img!=='style1'){
-     loadPresentation('assets/service-personalization.js?v=rank-above-name-1',()=>{
+     loadPresentation('assets/service-personalization.js?v=worn-models-1',()=>{
       window.AJServicePersonalization.connectProduct(custom, actual, () => {
        const select = custom.querySelector('#design-variation');
        return select ? item.variations[Number(select.value)] : item;
@@ -710,7 +696,7 @@ if(window.AJStore){
  const form=document.querySelector('.form')||document.querySelector('.customizer');if(form&&!document.querySelector('.aj-checkout'))disabledCheckout(form);
 }
 function mountItemEow(form, preview, collection, key){
- loadPresentation('assets/service-personalization.js?v=rank-above-name-1',()=>{
+ loadPresentation('assets/service-personalization.js?v=worn-models-1',()=>{
   const service = window.AJServicePersonalization;
   if(service.allowsEow(collection,key)) service.mount(form,{itemOnly:true,eow:()=>true,style:()=> 'Item',preview});
  });
@@ -735,9 +721,12 @@ loadPresentation('assets/studio-merch.js?v=5',()=>{
   for(const tile of document.querySelectorAll('#product-grid .product-tile')){
    const item=store.lines[line][Number(tile.dataset.productIndex)];
    const original=tile.querySelector('img');
-   if(!item||!original||item.boardMerch&&/tee|hoodie|quarter-zip|flag-top/i.test(item.title+' '+item.img))continue;
-   if(!item.accessory&&!/hat|cap|headwear/i.test(item.title)){store.renderThumbnail(original,item,line);continue;}
-   if(revisedCards[item.img])continue;
+   if(!item||!original||item.boardMerch&&/tee|hoodie|quarter-zip|flag-top|joggers|shorts/i.test(item.title+' '+item.img))continue;
+   if(!item.accessory&&!/hat|cap|headwear/i.test(item.title)){
+    const side=item.side||(item.eventApproved||item.img.startsWith('selected-gym-')&&!item.quoteDesign?'Front':undefined);
+    store.renderThumbnail(original,side?{...item,side}:item,line);
+    continue;
+   }
    const source=item.img.startsWith('selected-gym-')&&!item.accessory?boardImage(item.img):assets[item.img];
    const cutout=studio.source(source,item.img);
    if(!cutout)continue;

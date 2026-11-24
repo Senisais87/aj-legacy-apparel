@@ -12,8 +12,11 @@
   'Half-zip': [.285,.435,.065],
  };
  const photographedSleeves = {
-  'T-shirt': [.21,.365,.085],
-  Hoodie: [.23,.435,.085],
+  'T-shirt': [.28,.31,.071],
+  Hoodie: [.27,.34,.071],
+  Crewneck: [.27,.34,.071],
+  Polo: [.27,.32,.068],
+  'Half-zip': [.27,.34,.068],
  };
  function sleevePosition(style, wearerSide, back=false, photographed=false) {
   if(style==='Full-zip hoodie')style='Hoodie';

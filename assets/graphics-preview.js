@@ -1,7 +1,6 @@
 /* Place print artwork on the flat lay for the selected garment. */
 (() => {
  const root = new URL('./', document.currentScript.src);
- const black = '#171717';
  const matthew = new URL('artwork/matthew-5-9.png', root).href;
  const matthewDesigns = new Set(['shirt2_0-law', 'shirt2_0-doc']);
  const scriptureBounds = {
@@ -70,23 +69,6 @@
   for(const [ex,ey,ew,eh] of exclusions[v.artKey]||[])cut.clearRect((ex*iw-x)*ratio,(ey*ih-y)*ratio,ew*iw*ratio,eh*ih*ratio);
   return cut.canvas;
  }
- function drawGarment(context, image, x, size, color) {
-  if(!color || color === black || color === '#151515' || color === '#15171b'){
-   context.drawImage(image,x,0,size,size);
-   return;
-  }
-  const work=layer(size,size);
-  work.drawImage(image,0,0,size,size);
-  const pixels=work.getImageData(0,0,size,size);
-  const tint=color.match(/[0-9a-f]{2}/gi).map(channel=>parseInt(channel,16));
-  for(let i=0;i<pixels.data.length;i+=4){
-   if(!pixels.data[i+3])continue;
-   const shade=.70+(pixels.data[i]+pixels.data[i+1]+pixels.data[i+2])/195;
-   for(let c=0;c<3;c++) pixels.data[i+c]=tint[c]*shade;
-  }
-  work.putImageData(pixels,0,0);
-  context.drawImage(work.canvas,x,0);
- }
  window.AJGraphicsPreview={create(canvas, refresh){
   const images=new Map();
   let disposed=false, artKey, cut;
@@ -123,19 +105,20 @@
     }else{
      const catalog=window.AJGarments;
      const profile=catalog.styles[v.style];
-     const oneSide=profile.lower||profile.logoOnly;
-     const front=get(catalog.image(v.style));
-     const back=oneSide?null:get(catalog.image(v.style,'back'));
+     const fit=canvas.closest('#garment-preview') && document.querySelector('#custom-form')?.querySelector('#fit, #quote-fit')?.value;
+     const model=catalog.models[v.style];
+     const photos=get(catalog.modelImage(v.style,fit));
      const logo=get(new URL('logo.png',root).href);
-     if([front,back,logo].some(image=>image&&!image.naturalWidth))return false;
-     const size=oneSide?540:420;
-     canvas.width=size*(oneSide?1:2);
+     if(!photos.naturalWidth||!logo.naturalWidth)return false;
+     const size=420;
      const shoulderBrand=['approved-eclipse-memorial','selected-gym-07-quote-proof'].includes(v.artKey);
-     canvas.height=size+(profile.lower||shoulderBrand?0:118);
+     const insideLabel=!profile.lower&&!shoulderBrand;
+     canvas.width=size*2;
+     canvas.height=size+28+(insideLabel?90:0);
      const context=canvas.getContext('2d');
-     drawGarment(context,front,0,size,v.color);
-     if(back) drawGarment(context,back,size,size,v.color);
-     if(!profile.logoOnly&&!v.logoOnly){
+     catalog.drawModel(context,photos,0,size,false,model,v.color);
+     catalog.drawModel(context,photos,size,size,true,model,v.color);
+     if(!profile.lower&&(!profile.logoOnly||v.mainBox)&&!v.logoOnly){
       const printAsset = matthewDesigns.has(v.artKey) ? get(matthew) : null;
       if (printAsset && !printAsset.naturalWidth) return false;
       const version=v.original.dataset?.renderVersion;
@@ -145,20 +128,23 @@
        cut = artwork(printAsset ? {...v, original: printAsset, rawArt: true, printAsset, stripeInk} : v);
        artKey = key;
       }
-      const backPrint=back&&v.side==='Back';
-      const [x,y,w,h]=(backPrint&&profile.backPrint)||profile.print;
+      const backPrint=!profile.lower&&v.side==='Back';
+      const [x,y,w,h]=model[backPrint?'back':'front'];
       if(profile.fullZip&&!backPrint){
+       context.save();
+       context.translate((x-.5)*size,0);
        window.AJPlacement.drawSplitFront(context,cut,size,y*size,w*size,h*size,true);
+       context.restore();
       }else{
        fit(context,cut,((backPrint?1:0)+x)*size,y*size,w*size,h*size);
       }
      }
      if(profile.lower){
-      const [x,y,w]=profile.logo;
+      const [x,y,w]=model.logo;
       fit(context,logo,x*size,y*size,w*size,w*size);
      }
      if(shoulderBrand){
-      fit(context,logo,size*.76,size*.34,size*.095,size*.095);
+      fit(context,logo,size*.74,size*.30,size*.075,size*.075);
       if(v.artKey==='approved-eclipse-memorial'&&!canvas.dataset.managedPersonalization){
        context.fillStyle='#fff';
        context.font='bold '+Math.round(size*.026)+'px system-ui';
@@ -172,10 +158,9 @@
       context.font='bold 13px system-ui';
       context.textAlign='center';
       const short=v.style==='Shorts';
-      context.fillText(v.text,size*(profile.lower?(short?.32:.40):.38),size*(profile.lower?(short?.45:.30):.28),size*(profile.lower?.105:.17));
+      context.fillText(v.text,size*(profile.lower?(short?.42:.41):.38),size*(profile.lower?(short?.25:.27):.28),size*(profile.lower?.105:.17));
      }
-     if(profile.fullZip)window.AJPlacement.drawZipper(context,size,.30,.87);
-     if(back){
+     {
       context.fillStyle='#f2f3f5';
       context.font='600 14px system-ui';
       context.textAlign='center';
@@ -195,8 +180,9 @@
     canvas.dataset.logoSide=shoulderBrand?'Front':window.AJGarments.styles[v.style]?.lower?'Front':'Inside';
     canvas.dataset.brandPlacement=shoulderBrand?'Wearer-left shoulder':window.AJPlacement.brand.placement;
     canvas.dataset.badgePlacement='Wearer-left chest';
-    canvas.dataset.bodyHeight=v.compose?String(window.AJGarments.styles[v.style]?.lower||window.AJGarments.styles[v.style]?.logoOnly?540:420):String(canvas.height);
+    canvas.dataset.bodyHeight=v.compose?'420':String(canvas.height);
     canvas.dataset.garment=v.style;
+    canvas.dataset.wornModel=String(Boolean(v.compose));
     canvas.dataset.placement=v.side;
     return true;
    }

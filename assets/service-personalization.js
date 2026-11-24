@@ -50,12 +50,13 @@
   }
   return null;
  }
- function paint(context, marks, surfaces, zones) {
+ function paint(context, marks, surfaces, zones, garmentModel) {
   const count = {}, previousY = {};
   const spinePair = ['Rank', 'Name'].every(kind =>
    marks.some(mark => mark.label === kind && mark.placement === spine));
   for (const {label, value, placement} of marks) {
-   const [side, x, y, width] = boxes[placement];
+   const [side, x, baseY, width] = boxes[placement];
+   const y = garmentModel && side === 1 && placement === shoulders && garmentModel.back?.[1] > .53 ? .39 : baseY;
    const surface = surfaces[side];
    if (!surface) continue;
    const [left, top, widthPx, height] = surface;
@@ -237,9 +238,9 @@
    const sleeve = front || back;
    const colors = selectedSleeveColors(form, stripePalette);
    if (!colors.length && defaultSleeveColor) colors.push(defaultSleeveColor);
-   if (!itemOnly && sleeveFlag && sleeve && window.AJPlacement.hasSleeves(currentStyle)) paintFlag(context, sleeve, !front, zones[front ? 0 : 1], colors, currentStyle, engine === 'live-garment-personalization');
+   if (!itemOnly && sleeveFlag && sleeve && window.AJPlacement.hasSleeves(currentStyle)) paintFlag(context, sleeve, !front, zones[front ? 0 : 1], colors, currentStyle, preview.dataset.wornModel==='true');
    const emblem = window.AJPlacement.hasSleeves(currentStyle) ? geography?.emblem() : null;
-   if (emblem) paintState(context, emblem, front, back, zones, currentStyle, engine === 'live-garment-personalization');
+   if (emblem) paintState(context, emblem, front, back, zones, currentStyle, preview.dataset.wornModel==='true');
    const agencyBadge = geography?.approvedBadge();
    if (agencyBadge && front) {
     const art = image(new URL(agencyBadge.artwork, assetRoot).href);
@@ -252,7 +253,8 @@
      context.drawImage(art, left + width * window.AJPlacement.badge.x - w / 2, top + height * centerY - h / 2, w, h);
     }
    }
-   paint(context, entries, surfaces, zones);
+   const model=preview.dataset.wornModel==='true' ? window.AJGarments.models[currentStyle] : null;
+   paint(context, entries, surfaces, zones, model);
    const placementDescription = currentStyle === 'Tank Top' ? '' :
     ' Thin-line flag on the wearer’s right sleeve, stars forward.' + (emblem ? ' State emblem on the wearer’s left sleeve.' : '');
    canvas.setAttribute('aria-label', 'Customized product.' + placementDescription + ' ' + entries.map(mark => mark.label + ': ' + mark.value + ', ' + mark.placement).join('; '));
