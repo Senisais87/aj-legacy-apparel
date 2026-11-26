@@ -8,7 +8,8 @@ for(const link of document.querySelectorAll('link[rel="stylesheet"]')){
 }
 
 const root=new URL('../',document.currentScript.src),url=p=>new URL(p,root).href;
-const collectionPhoto = path => url(path + '?v=approved-shield-1');
+const collectionPhoto = path => url(path + (path === 'assets/collection-models/gym.webp'
+ ? '?v=discipline-flag-removed' : '?v=approved-shield-1'));
 const givingLink=url('giving-back.html');
 const memorialPledge='25% of profits from Memorial Merch will be donated to Concerns of Police Survivors (C.O.P.S.).';
 const customizationBanner=document.querySelector('#customization-options > div');
